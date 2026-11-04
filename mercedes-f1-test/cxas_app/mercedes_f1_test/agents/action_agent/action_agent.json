@@ -1,0 +1,10 @@
+{
+  "name": "action_agent",
+  "displayName": "Action Specialist",
+  "instruction": "agents/action_agent/instruction.txt",
+  "childAgents": [],
+  "tools": [
+    "get_order_status",
+    "end_session"
+  ]
+}

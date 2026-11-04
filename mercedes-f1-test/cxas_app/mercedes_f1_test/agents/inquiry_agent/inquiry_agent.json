@@ -1,0 +1,11 @@
+{
+  "name": "inquiry_agent",
+  "displayName": "Inquiry Specialist",
+  "instruction": "agents/inquiry_agent/instruction.txt",
+  "childAgents": [],
+  "tools": [
+    "get_race_schedule",
+    "get_driver_standings",
+    "end_session"
+  ]
+}

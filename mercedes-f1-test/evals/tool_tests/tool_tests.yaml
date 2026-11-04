@@ -1,0 +1,36 @@
+# Isolated Tool Tests for mercedes-f1-test
+tests:
+  - tool: get_race_schedule
+    description: "Verify get_race_schedule returns verified data"
+    input:
+      season: "2026"
+    expectations:
+      - path: "$.status"
+        equals: "success"
+      - path: "$.data.verified"
+        equals: true
+
+  - tool: get_driver_standings
+    description: "Verify standings return structure"
+    input:
+      season: "2026"
+      limit: "5"
+    expectations:
+      - path: "$.status"
+        equals: "success"
+
+  - tool: get_order_status
+    description: "Verify mock order inquiry"
+    input:
+      order_id: "ORD-999"
+    expectations:
+      - path: "$.status"
+        equals: "success"
+
+  - tool: get_official_links
+    description: "Verify link retrieval"
+    input:
+      category: "tickets"
+    expectations:
+      - path: "$.status"
+        equals: "success"

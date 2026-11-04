@@ -1,0 +1,13 @@
+{
+  "name": "root_agent",
+  "displayName": "Root Concierge",
+  "instruction": "agents/root_agent/instruction.txt",
+  "childAgents": [
+    "inquiry_agent",
+    "action_agent"
+  ],
+  "tools": [
+    "get_official_links",
+    "end_session"
+  ]
+}

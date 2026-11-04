@@ -1,0 +1,10 @@
+{
+  "name": "get_race_schedule",
+  "displayName": "get_race_schedule",
+  "pythonFunction": {
+    "name": "get_race_schedule",
+    "description": "Queries race calendar and session timings.",
+    "pythonCode": "tools/get_race_schedule/python_function/python_code.py"
+  },
+  "executionType": "SYNCHRONOUS"
+}

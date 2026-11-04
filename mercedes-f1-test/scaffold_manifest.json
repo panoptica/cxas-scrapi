@@ -1,0 +1,33 @@
+{
+  "status": "complete",
+  "app_dir": "/Users/mattmcconnon/gecx/mercedes-f1-test/cxas_app/mercedes_f1_test",
+  "files_written": [
+    "/Users/mattmcconnon/gecx/mercedes-f1-test/cxas_app/mercedes_f1_test/tools/get_race_schedule/get_race_schedule.json",
+    "/Users/mattmcconnon/gecx/mercedes-f1-test/cxas_app/mercedes_f1_test/tools/get_race_schedule/python_function/python_code.py",
+    "/Users/mattmcconnon/gecx/mercedes-f1-test/cxas_app/mercedes_f1_test/tools/get_driver_standings/get_driver_standings.json",
+    "/Users/mattmcconnon/gecx/mercedes-f1-test/cxas_app/mercedes_f1_test/tools/get_driver_standings/python_function/python_code.py",
+    "/Users/mattmcconnon/gecx/mercedes-f1-test/cxas_app/mercedes_f1_test/tools/get_order_status/get_order_status.json",
+    "/Users/mattmcconnon/gecx/mercedes-f1-test/cxas_app/mercedes_f1_test/tools/get_order_status/python_function/python_code.py",
+    "/Users/mattmcconnon/gecx/mercedes-f1-test/cxas_app/mercedes_f1_test/tools/get_official_links/get_official_links.json",
+    "/Users/mattmcconnon/gecx/mercedes-f1-test/cxas_app/mercedes_f1_test/tools/get_official_links/python_function/python_code.py",
+    "/Users/mattmcconnon/gecx/mercedes-f1-test/cxas_app/mercedes_f1_test/agents/root_agent/instruction.txt",
+    "/Users/mattmcconnon/gecx/mercedes-f1-test/cxas_app/mercedes_f1_test/agents/root_agent/root_agent.json",
+    "/Users/mattmcconnon/gecx/mercedes-f1-test/cxas_app/mercedes_f1_test/agents/inquiry_agent/instruction.txt",
+    "/Users/mattmcconnon/gecx/mercedes-f1-test/cxas_app/mercedes_f1_test/agents/inquiry_agent/inquiry_agent.json",
+    "/Users/mattmcconnon/gecx/mercedes-f1-test/cxas_app/mercedes_f1_test/agents/action_agent/instruction.txt",
+    "/Users/mattmcconnon/gecx/mercedes-f1-test/cxas_app/mercedes_f1_test/agents/action_agent/action_agent.json",
+    "/Users/mattmcconnon/gecx/mercedes-f1-test/cxas_app/mercedes_f1_test/agents/root_agent/before_model_callbacks/greeting_callback/python_code.py",
+    "/Users/mattmcconnon/gecx/mercedes-f1-test/cxas_app/mercedes_f1_test/app.json"
+  ],
+  "agents": [
+    "root_agent",
+    "inquiry_agent",
+    "action_agent"
+  ],
+  "tools": [
+    "get_race_schedule",
+    "get_driver_standings",
+    "get_order_status",
+    "get_official_links"
+  ]
+}

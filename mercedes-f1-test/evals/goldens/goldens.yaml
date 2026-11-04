@@ -1,0 +1,38 @@
+# Golden Conversations for mercedes-f1-test
+evaluations:
+  - name: greeting_welcome_cuj
+    tags: [P0, greeting, mercedes-f1-test]
+    session_parameters:
+      user_name: "Alex"
+    conversation:
+      - user: "<event>welcome</event>"
+        agent:
+          text: "Hello! I'm Totto, your Mercedes F1 assistant. How can I help you today?"
+      - user: "Who won the last race?"
+        agent:
+          tool_calls:
+            - name: get_driver_standings
+              args:
+                season: "2026"
+          text: "Here are the latest race results and standings."
+      - user: "Thanks, goodbye!"
+        agent:
+          tool_calls:
+            - name: end_session
+          text: "You're welcome! Have a fantastic day!"
+
+  - name: official_links_cuj
+    tags: [P1, links, mercedes-f1-test]
+    conversation:
+      - user: "Where can I buy tickets for the next race?"
+        agent:
+          tool_calls:
+            - name: get_official_links
+              args:
+                category: "ticketing"
+          text: "You can find official tickets at the official F1 ticketing destination."
+      - user: "Thank you!"
+        agent:
+          tool_calls:
+            - name: end_session
+          text: "Always happy to help!"

@@ -1,0 +1,10 @@
+{
+  "gcp_project_id": "mock-gcp-project",
+  "location": "us",
+  "app_name": "mercedes-f1-test",
+  "deployed_app_id": null,
+  "app_dir": "cxas_app/mercedes_f1_test/",
+  "model": "gemini-3.1-flash-live",
+  "modality": "audio",
+  "default_channel": "audio"
+}

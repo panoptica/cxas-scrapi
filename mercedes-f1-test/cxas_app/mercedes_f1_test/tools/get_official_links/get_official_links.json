@@ -1,0 +1,10 @@
+{
+  "name": "get_official_links",
+  "displayName": "get_official_links",
+  "pythonFunction": {
+    "name": "get_official_links",
+    "description": "Returns verified official destinations and links.",
+    "pythonCode": "tools/get_official_links/python_function/python_code.py"
+  },
+  "executionType": "SYNCHRONOUS"
+}

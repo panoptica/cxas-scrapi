@@ -332,8 +332,16 @@ class SchemaValid(Rule):
 
         # Pop custom tools field from app_config to avoid proto validation
         # failure
-        if self.target == "app_config" and "tools" in data:
-            data.pop("tools")
+        if self.target == "app_config":
+            if "tools" in data:
+                data.pop("tools")
+            audio_cfg = data.get("audioProcessingConfig")
+            if isinstance(audio_cfg, dict):
+                speech_cfgs = audio_cfg.get("synthesizeSpeechConfigs")
+                if isinstance(speech_cfgs, dict):
+                    for cfg in speech_cfgs.values():
+                        if isinstance(cfg, dict):
+                            cfg.pop("instruction", None)
 
         # Pop any custom _comment_ fields used for inline documentation
         for key in list(data.keys()):

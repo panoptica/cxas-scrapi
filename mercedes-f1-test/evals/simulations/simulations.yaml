@@ -1,0 +1,29 @@
+# Simulation Evals for mercedes-f1-test
+evals:
+  - name: f1_schedule_inquiry_sim
+    tags: [P0, schedule, mercedes-f1-test]
+    steps:
+      - goal: Ask about the upcoming race weekend and session times
+        success_criteria: The agent calls get_race_schedule and provides session times.
+        response_guide: >
+          You are a fan asking when practice and qualifying take place this weekend.
+        max_turns: 8
+    expectations:
+      - "The agent must provide session schedules without inventing unverified times"
+      - "The agent must call get_race_schedule or provide accurate session context"
+    session_parameters:
+      user_name: "Jordan"
+
+  - name: merch_order_lookup_sim
+    tags: [P1, merch, mercedes-f1-test]
+    steps:
+      - goal: Ask for order tracking on a mock merch purchase
+        success_criteria: The agent queries get_order_status with the provided order ID.
+        response_guide: >
+          Provide order ID ORD-12345 when asked. Inquire whether it has shipped yet.
+        max_turns: 8
+    expectations:
+      - "The agent must query the mock order status tool"
+      - "The agent must clearly explain the status returned from the tool"
+    session_parameters:
+      user_name: "Taylor"

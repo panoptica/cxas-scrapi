@@ -1,0 +1,53 @@
+{
+  "name": "mercedes_f1_test",
+  "displayName": "Mercedes-F1-Test",
+  "rootAgent": "root_agent",
+  "modelSettings": {
+    "model": "gemini-3.1-flash-live"
+  },
+  "variableDeclarations": [
+    {
+      "name": "user_name",
+      "description": "The name of the user interacting with the assistant.",
+      "schema": {
+        "type": "STRING",
+        "default": ""
+      }
+    },
+    {
+      "name": "query_context",
+      "description": "Active query domain or topic identifier.",
+      "schema": {
+        "type": "STRING",
+        "default": ""
+      }
+    },
+    {
+      "name": "session_status",
+      "description": "Internal status tracking the current workflow state.",
+      "schema": {
+        "type": "STRING",
+        "default": ""
+      }
+    },
+    {
+      "name": "last_intent",
+      "description": "Last recognized intent for routing and analytics.",
+      "schema": {
+        "type": "STRING",
+        "default": ""
+      }
+    }
+  ],
+  "tools": [
+    "get_race_schedule",
+    "get_driver_standings",
+    "get_order_status",
+    "get_official_links"
+  ],
+  "loggingSettings": {
+    "evaluationAudioRecordingConfig": {
+      "gcsBucket": "gs://audio-evals"
+    }
+  }
+}

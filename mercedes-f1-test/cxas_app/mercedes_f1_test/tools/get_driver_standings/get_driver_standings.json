@@ -1,0 +1,10 @@
+{
+  "name": "get_driver_standings",
+  "displayName": "get_driver_standings",
+  "pythonFunction": {
+    "name": "get_driver_standings",
+    "description": "Retrieves current F1 driver and constructor standings.",
+    "pythonCode": "tools/get_driver_standings/python_function/python_code.py"
+  },
+  "executionType": "SYNCHRONOUS"
+}
