@@ -130,7 +130,7 @@ def test_lint_result_to_dict_and_report_to_json() -> None:
     assert d["osi_layer"] == "L7"
     assert d["waf_pillar"] == WAF_OPS
     assert "Brain" in d["macro_band_name"]
-    assert "Pyramid" in d["pyramid_layer"]
+    assert d["pyramid_layer"] == "Pyramid L3-L4: Turn & Golden Evals"
 
     report = LintReport(results=[result])
     parsed = json.loads(report.to_json())

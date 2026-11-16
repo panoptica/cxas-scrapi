@@ -1,142 +1,225 @@
 /**
- * Google Slides Apps Script Generator — 5-Slide Engineering Architecture Brief for GECX Leadership & Engineering
- * ("Layered Voice Architecture & Agentic Well-Architected")
+ * Google Slides Apps Script Generator — 5-Slide Engineering Architecture Brief
+ * ("Google Cloud Well-Architected Framework for GECX Voice Agents")
  *
  * Usage in Google Slides:
- *   1. Open any Google Slides deck -> Extensions -> Apps Script
+ *   1. Open any 16:9 Google Slides presentation -> Extensions -> Apps Script
  *   2. Paste this file and run `buildVoiceWafSlides()`
  */
 
 const SLIDE_DECK_SPEC = [
   {
-    badge: "SLIDE 1 OF 5 • FIRST PRINCIPLE (OSI LAYER 1)",
-    title: "Why We Are Doing This Whole Thing: The <1,200ms Physical Voice Wire",
-    subtitle: "In chat, a 3s delay is a spinner. On a live phone wire (PSTN/SIP/SBC/RTP), >1,200ms is dead air.",
-    leftTitle: "❌ Why Chat-Agent Patterns Fail on the Wire",
+    badge: "SLIDE 1 OF 5 • ARCHITECTURAL FOUNDATION & CONVERSATIONAL TELEPHONY PHYSICS",
+    badgeColor: "#60A5FA",
+    title: "Google Cloud Well-Architected Framework (WAF): Foundation & 5 Core Pillars",
+    subtitle: "System Design foundation across the 5 WAF pillars — and why live full-duplex telephony breaks stateless cloud tolerances.",
+    leftBorder: "#4285F4",
+    leftTitle: "🏛️ System Design Foundation & 5 Core WAF Pillars",
     leftBullets: [
-      "• Legacy 3-Stage Pipeline: ASR (400ms) + LLM (500ms) + TTS (300ms) = 1,500–2,500ms (blows wire budget before tools run).",
-      "• Inline LLM Supervisors: Adding +800ms per pre/post safety check causes callers to yell 'Hello?!' or barge in.",
-      "• Unbounded Backend Calls (Lab 3 Branch 1): 35s billing hang hits the 30s Platform Harpoon and drops the call.",
-      "• Silence During Tool Calls: 0 spoken filler phrases (Rule T014 violation) leaves 5s–35s of dead air on the line."
+      "• System Design Foundation: Modular boundaries, clear ownership, stateful session contracts & critical-path budgets.",
+      "• 1. Operational Excellence: Deterministic static/semantic linting, automated CI regression gates & trace telemetry.",
+      "• 2. Security, Privacy & Compliance: Zero-trust auth gates, least-privilege DTO projection & PII redaction.",
+      "• 3. Reliability: Bounded client timeouts, stateful circuit breakers, safe state initialization & graceful fallbacks.",
+      "• 4. Performance & 5. Cost Optimization: Sub-second turn pacing, parallel tools, lean payloads & minimal LLM passes."
     ],
-    rightTitle: "✅ The GECX Physical Wire Contract (<1,200ms)",
+    rightBorder: "#38BDF8",
+    rightTitle: "📞 Stateless Cloud Apps vs. Live Full-Duplex Telephony",
     rightBullets: [
-      "• Gemini Composite Native Speech-to-Speech: <800ms Time-to-First-Audio (TTFA) with temperature=1.0 (Rule A010).",
-      "• Sub-5ms Python Guardrail Callbacks: Enforce Auth Gates & PII scrubbing in Python (<5ms) instead of slow LLM hops.",
-      "• Rule T014 Spoken Filler Bridges: 'Tell them, then do it' masks a bounded 5,000ms backend tool SLA.",
-      "• SBC Barge-In Buffer Flush: bargeInAwareness=true flushes playback immediately when the caller speaks."
+      "• Stateless Request/Response Cloud Apps (HTTP / REST / Web Chat):",
+      "  - Tolerate 2–3s tail jitter behind visual spinners, UI skeletons, and half-duplex retry loops.",
+      "• Live Full-Duplex Telephony (PSTN / SIP / SBC / RTP / BidiRunSession):",
+      "  - Operates under strict human conversational physics: ~200 ms natural turn gap and <1,200 ms wire ceiling.",
+      "  - Beyond 1,200 ms of silence, callers say 'Hello?!', trigger SBC barge-in collisions, or hang up."
     ],
-    notes: "Architectural Rationale for Engineering Leadership: Stop presenting GECX patterns as a flat checklist. Every architectural choice we make—Composite speech-to-speech, <5ms Python callbacks, spoken tool fillers, and 5s tool timeouts—exists to protect the 1,200ms human conversational ceiling on the physical telephony wire."
+    footer: "Google Cloud WAF Foundation • Stateful Full-Duplex Voice Physics (~200 ms Turn Gap • <1,200 ms Wire Ceiling)",
+    notes: "Architectural Rationale for Engineering Leadership: Every enterprise system rests on Google Cloud's System Design foundation and its 5 Well-Architected pillars (Operational Excellence, Security, Reliability, Performance, Cost). The critical insight for voice engineering is why stateless cloud patterns fail on a live phone call: HTTP apps hide 2–3s of jitter behind a spinner, whereas full-duplex telephony across PSTN/SIP/SBC/RTP/BidiRunSession runs on ~200 ms human turn gaps and a strict <1,200 ms wire ceiling."
   },
   {
-    badge: "SLIDE 2 OF 5 • THE LAYERED ARCHITECTURE MODEL",
-    title: "The Mental Model: 'TCP/IP over OSI' for Voice Agents (4 Bands × L1–L7)",
-    subtitle: "4 Engineering Macro-Bands (matching cxas_app folders & F1 Testing Pyramid) containing L1–L7 Agentic OSI.",
-    leftTitle: "🏗️ Bottom-Up Stack: Bands 1 & 2 (Wire & Harness)",
+    badge: "SLIDE 2 OF 5 • AI/ML PERSPECTIVE & STATEFUL VOICE AGENT ADAPTATION",
+    badgeColor: "#60A5FA",
+    title: "The AI/ML & Agentic Lens for Google Cloud WAF",
+    subtitle: "Adapting all 5 WAF pillars to stateful, tool-calling voice agents and the official 5+1 CXAS Evaluation Pyramid.",
+    leftBorder: "#10B981",
+    leftTitle: "⚡🛡️⚙️💰 Performance, Security, Reliability & Cost Lenses",
     leftBullets: [
-      "• Band 1 — Acoustic Wire & Turn Pacing (app.json):",
-      "  - OSI L1 (Physical Wire): Composite <800ms TTFA, temp=1.0 (A010), Director's Notes (A007/A009), SBC Barge-In.",
-      "  - OSI L2 (Data Link / Framing): Rule T014 spoken filler bridges + 3-strike VAD silence detection.",
-      "• Band 2 — Deterministic Python Harness (callbacks/ — <5ms):",
-      "  - OSI L5 (Session & Auth Gate): before_agent state seed + synchronous before_model LlmResponse gate.",
-      "  - OSI L6a (Post-Tool Scrubber): after_tool_callback <2ms firewall stripping tokens, PII & injections."
+      "• Performance ('Count Passes, Not Tokens'): ~465 ms median single Gemini pass; 116–236 ms 0-pass callback turns; 5 Levers of Speed (Mask, Cut, Overlap, Start Early, Shrink).",
+      "• Security (Two-Plane Deterministic): 0–1 ms contentFilter + <5 ms Python Auth Gate / 0-token Guardrail Handoff Intercept vs. ~300 ms/rule inline llmPolicy; state-bound IDOR prevention.",
+      "• Reliability: Bounded <=5s tool SLAs inside 30s platform harpoon, stateful circuit breakers, [Part.from_text(text='')] silent close (no parts=[] deaf sessions), _initialized guard & C005 (never regex raw speech — 11% accuracy).",
+      "• Cost: 2,400 -> 32 token Clean DTO compression (-2.4 s / -5 passes), 0-token Turn 1 greeting (~150 ms) & Single-Agent default (<=15 tools)."
     ],
-    rightTitle: "🧠 Bottom-Up Stack: Bands 3 & 4 (Brain & Tools)",
+    rightBorder: "#A855F7",
+    rightTitle: "📋 Operational Excellence: Official 5+1 CXAS Eval Pyramid",
     rightBullets: [
-      "• Band 3 — Cognitive Brain & Routing Topology (agents/):",
-      "  - OSI L3 (Network Routing): Shallow Spoke-and-Hub (<500ms hop) + native end_session (A005).",
-      "  - OSI L7 (Cognitive XML Policy): <role>, <persona>, <constraints>, <taskflow>, {current_date}, Groundedness.",
-      "• Band 4 — Tool Transport & Clean Data Facade (tools/ — ≤5s SLA):",
-      "  - OSI L4 (Transport SLA): Bounded 5s Client SLA (vs. 30s Harpoon) + Stateful 503 Circuit Breaker (attempt >= 2).",
-      "  - OSI L6b (Clean DTO Facade): 'It can't leak what it never saw' + UNTRUSTED_EXTERNAL_DATA + NULL_LEDGER_DATA."
+      "• L0 — Static & Semantic Lint: cxas lint (60+ structural checks) + cxas llm-lint.",
+      "• L1 — Callback Unit Tests: pytest (<200 ms, 0 tokens) for Auth Gates, scrubbers & state guards.",
+      "• L2 — :executeTool Tests: Live schema contracts, Clean DTO shapes & <=5s SLAs (0 LLM tokens).",
+      "• L3 Turn Evals -> L4 Platform Goldens -> L5 Audio Sims & Guardrail Evals (13 noise presets).",
+      "• Release Governance: Ephemeral PR gates via cxas ci-test + 4-Gate Graduation Process (Sandbox -> Staging -> Shadow/Canary -> Prod)."
     ],
-    notes: "Architectural Rationale for Engineering Leadership: When reconciling architectural simplicity with forensic precision, we adopt a 'TCP/IP over OSI' hybrid model. Visually it provides 4 clean bands matching the 4 folders of a cxas_app, while giving teams the L1–L7 OSI diagnostic layers ('Branch 1 is a Layer 4 Transport Timeout; Branch 3 is a Layer 6 DTO Leak')."
+    footer: "AI/ML WAF Perspective • 'Count Passes, Not Tokens' + Two-Plane Security + Official 5+1 Evaluation Pyramid",
+    notes: "Architectural Rationale for Engineering Leadership: Applying Google Cloud's AI/ML Perspective sharpens all 5 WAF pillars for stateful voice agents: Performance counts passes (~465 ms/pass) via the 5 Levers of Speed; Security enforces Two-Plane deterministic guardrails in 0–5 ms instead of ~300 ms/rule inline llmPolicy; Reliability bounds tools at <=5s inside the 30s harpoon and bans raw speech regex (11% accuracy); Cost compresses 2,400 -> 32 token DTOs; and Operational Excellence governs releases with the 5+1 CXAS Evaluation Pyramid, cxas ci-test PR gates, and the 4-Gate Graduation Process."
   },
   {
-    badge: "SLIDE 3 OF 5 • LAB 3 CHAOS & GOOGLE CLOUD AGENTIC WAF",
-    title: "Lab 3 ('Broken Agent') Mapped to the 4 Bands & Agentic WAF Pillars",
-    subtitle: "Every bug in failure_workshop_agent (10 lint errors, 17 warnings, 6 chaos branches) is a specific layer failure.",
-    leftTitle: "❌ Bad Agent Anti-Patterns (failure_workshop_agent)",
+    badge: "SLIDE 3 OF 5 • CANONICAL REFERENCE STACK (CXAS / SCRAPI FIELD GUIDE)",
+    badgeColor: "#38BDF8",
+    title: "GECX Voice Best Practices on CXAS / SCRAPI ('TCP/IP over L1–L7 Agentic OSI')",
+    subtitle: "4 Horizontal Macro-Bands mapping cxas_app folders, L1–L7 Agentic OSI layers, and the 5+1 Evaluation Pyramid.",
+    leftBorder: "#38BDF8",
+    leftTitle: "🟦🟩 Bands 1 & 2: Acoustic Wire & Python Harness",
     leftBullets: [
-      "• [Band 1 / L1–L2] temp=0.2 deadlock (A010), bargeIn=false, 0 T014 spoken bridges -> Dead air on wire.",
-      "• [Band 2 / L5–L6a] Miswired callback returns raw dict (V002/S003); Branch 0 leaks $142.85 + SSN '9921'.",
-      "• [Band 3 / L3 & L7] 6-line flat prompt (I001–I014), missing end_session (A005), obeys $500 override, guesses $25 fee.",
-      "• [Band 4 / L4] Branch 1 hangs 35s (>30s Harpoon drops call); Branch 2 loops 503 5+ times (IAL token burn).",
-      "• [Band 4 / L6b] Branch 3 leaks SECRET_KEY_998877_PROD_DB; Branch 4 raw CRM injection; Branch 5 raw {'fee': None}."
+      "• Band 1 (app.json • OSI L1–L2 • Eval L5): gemini-composite-v2 + sonic-bolt — clear legacy Director's Notes ('instruction': '', 'voiceInstructionMode': 'NO_INSTRUCTION') for 3.84x inline <prosody rate='64%'><warm> dynamics.",
+      "  - <Affective Delivery> + scoped speech normalization in global_instruction.txt, BidiRunSession SessionConfig-first law, Callback (0.26 s) & Named Two-Part Reply (0.73 s) fillers.",
+      "• Band 2 (callbacks/ • OSI L5–L6a • Eval L1): _initialized guard + ANI prefetch, 0-token greeting (~150 ms) & [Part.from_text('')] silent close.",
+      "  - Synchronous before_model Auth Gate (LlmResponse), <2 ms after_tool scrubber & 0–1 ms contentFilter."
     ],
-    rightTitle: "✅ Well-Architected Fix (success_workshop_agent) & WAF",
+    rightBorder: "#F97316",
+    rightTitle: "🟪🟧 Bands 3 & 4: Cognitive Brain & Tool Transport",
     rightBullets: [
-      "• [Band 1 • WAF Performance] Composite temp=1.0, Director's Notes, SBC flush + mandatory T014 spoken bridge.",
-      "• [Band 2 • WAF Security & Cost] Two-Plane Auth Gate (before_model LlmResponse) + <2ms after_tool scrubber.",
-      "• [Band 3 • WAF Ops & Reliability] Structured XML Contract + Strict Zero-Hallucination Groundedness + end_session.",
-      "• [Band 4 • WAF Reliability & Cost] 5s Client SLA (BILLING_GATEWAY_TIMEOUT -> Ticket) + Circuit Breaker (attempt >= 2).",
-      "• [Band 4 • WAF Security] Clean Store DTO + UNTRUSTED_EXTERNAL_DATA tag + NULL_LEDGER_DATA error envelope."
+      "• Band 3 (agents/ • OSI L3 & L7 • Eval L0/L3/L4): Single-Agent default (<=15 tools) vs. earned Hub-and-Spoke (735 ms callback transfer) + native end_session.",
+      "  - Canonical PIF XML (<role>..<taskflow>, ${current_date}); strict Gate 1–2 Incubating boundary (Self-Steering, Slot Filling DAG).",
+      "• Band 4 (tools/ • OSI L4 & L6b • Eval L2): Typed -> dict returns, zero None defaults (T011), pooled ces_requests & async_tools (PARALLEL).",
+      "  - 2,400 -> 32 token Clean DTOs, self-healing agent_action envelopes (T001), bounded 5s SLA / 0.14s Remote-Job polling."
     ],
-    notes: "Architectural Rationale for Engineering Leadership: This transforms Lab 3 from an overwhelming bug hunt into a structured architectural diagnostic across the 5 Google Cloud Agentic WAF pillars (Performance, Security, Reliability, Cost, Operational Excellence)."
+    footer: "1-to-1 Symmetry: cxas_app Directory (app.json, callbacks/, agents/, tools/) ↔ OSI Layer Pair ↔ 5+1 Eval Tier",
+    notes: "Architectural Rationale for Engineering Leadership: The TCP/IP-over-OSI stack gives every team 4 clean horizontal Macro-Bands matching the exact folders of a cxas_app while preserving L1–L7 diagnostic precision. Note the Composite v2 standard in Band 1: clearing legacy Director's Notes ('instruction': '', 'voiceInstructionMode': 'NO_INSTRUCTION') unlocks 3.84x expressive prosody dynamic range via inline angle-bracket tags."
   },
   {
-    badge: "SLIDE 4 OF 5 • THE 1-TO-1 QUALITY FLYWHEEL",
-    title: "1-to-1 Alignment: 4 Architecture Bands ↔ 4-Layer F1 Testing Pyramid",
-    subtitle: "Push every test as far down the pyramid as it will go: catch L4–L7 bugs in milliseconds for zero tokens.",
-    leftTitle: "🏗️ Architectural Macro-Band (What We Build)",
+    badge: "SLIDE 4 OF 5 • ANTI-PATTERN FORENSICS (LAB 3: failure_workshop_agent)",
+    badgeColor: "#F87171",
+    title: "Poorly Architected Voice Agent (failure_workshop_agent): Diagram & Failures",
+    subtitle: "10 Static Lint Errors • 17 Warnings • 0/6 Chaos Branches Survived — Compounding breaches onto the live phone wire.",
+    leftBorder: "#EF4444",
+    leftTitle: "❌ 4-Band Broken Topology (Breach Flow: Band 4 -> Wire)",
     leftBullets: [
-      "• 🟧 Band 4: Tool Transport & Clean DTO Facade (OSI L4 & L6b — tools/*/python_code.py)",
-      "• 🟩 Band 2: Deterministic Python Harness (OSI L5 & L6a — callbacks/ & session.state)",
-      "• 🟪 Band 3: Cognitive XML Brain & Routing (OSI L3 & L7 — agents/*/instruction.txt)",
-      "• 🟦 Band 1: Physical Voice Wire & Turn Pacing (OSI L1 & L2 — app.json & Audio Profile)"
+      "• [Band 4 Breach — tools/] Unbounded 35s hang, infinite 503 retries, raw DB secrets, CRM override & None values pour into context.",
+      "        ⬇  Unvalidated Fault & Secret Cascade  ⬇",
+      "• [Band 3 Breach — agents/] 6-line flat prompt obeys $500 CRM injection, guesses $25.00 fee on None & lacks end_session.",
+      "        ⬇  Unguarded Hallucination & Policy Bypass  ⬇",
+      "• [Band 2 Breach — callbacks/] Miswired callback returns raw dict (C004); zero PII scrubbing; leaks billing & SSN unauthenticated.",
+      "        ⬇  💥 BREACHED WIRE: 6.30 s+ Dead Air • 30s Harpoon Drop • PII Leaked"
     ],
-    rightTitle: "🏎️ F1 Testing Pyramid Layer (How AGY Verifies It)",
+    rightBorder: "#EF4444",
+    rightTitle: "🔍 Verbatim Lab 3 Failure Examples (10E, 17W, 0/6 Chaos)",
     rightBullets: [
-      "• 🔧 Pyramid L1 — Workshop Dyno (50ms • 0 Tokens): pytest test_tools.py + uv run cxas lint",
-      "• 🔩 Pyramid L2 — Bench Assembly (200ms • 0 Tokens): pytest test_callbacks.py (Auth Gates & Scrubbers)",
-      "• 🛞 Pyramid L3 — Sim-Rig Chicane (~5s • Low Tokens): uv run cxas llm-lint + Frozen Turn & Golden Evals",
-      "• 🏁 Pyramid L4 — 50-Lap Grand Prix (~30s • Audio): cxas evals report --modality audio --background-noise"
+      "• Band 1: temperature: 0.2 repetition deadlock (A010), bargeInAwareness: false, 0 spoken fillers (T014) -> 6.30 s+ dead air.",
+      "• Band 2: Missing/broken callback wiring (V002/S003, returns raw dict C004); Branch 0 leaks $142.85 + ssn_last_four: '9921' to UNAUTHENTICATED.",
+      "• Band 3: 6-line flat prompt (I006/I014), missing end_session (A005), obeys $500 CRM prompt injection, hallucinates $25.00 fee on None.",
+      "• Band 4: Branch 1 35s hang > 30s Platform Harpoon drops call; Branch 2 infinite 503 loop (retry_allowed: True); Branch 3 leaks SECRET_KEY_998877_PROD_DB; Branch 4 raw injection; Branch 5 raw {'fee_amount': None}."
     ],
-    notes: "Architectural Rationale for Engineering Leadership: The 4 Macro-Bands map 1-to-1 to our 4-Layer F1 Testing Pyramid. Engineers never waste 30-second audio simulation tokens debugging a null pointer or broken callback path that Pyramid L1/L2 catches in 200ms."
+    footer: "Lab 3 Broken Baseline: uv run cxas lint Catches 10 Errors & 17 Warnings Statically in Milliseconds",
+    notes: "Architectural Rationale for Engineering Leadership: Lab 3's failure_workshop_agent demonstrates what happens when teams treat voice like a stateless web chatbot. Across 10 lint errors, 17 warnings, and 6 chaos branches: Band 1 deadlocks at temperature 0.2 with 6.30 s+ dead air; Band 2 returns a raw dict (C004) and leaks $142.85 + SSN '9921' to UNAUTHENTICATED callers; Band 3 obeys a $500 CRM injection and hallucinates a $25.00 fee; and Band 4's 35s hang hits the 30s Platform Harpoon and drops the call."
   },
   {
-    badge: "SLIDE 5 OF 5 • ANTIGRAVITY (AGY) AUTOMATION & NEXT STEPS",
-    title: "How AGY + gecx Skills Make Manual Work Redundant",
-    subtitle: "The entire 4-Band lifecycle is automated across cxas-scrapi, .agents/skills/, and delivery_kit/.",
-    leftTitle: "🚀 How AGY Automates the FDE / CE / Instructor Job",
+    badge: "SLIDE 5 OF 5 • PRODUCTION TARGET STATE (success_workshop_agent + v2 STANDARD)",
+    badgeColor: "#34D399",
+    title: "Well-Architected Voice Agent (success_workshop_agent + v2): Diagram & Fixes",
+    subtitle: "0 Static Lint Errors • 0 Warnings • 6/6 Chaos Branches Contained — Deterministic shields protecting the <1,200 ms wire.",
+    leftBorder: "#10B981",
+    leftTitle: "✅ 4-Band Hardened Defense Stack (Shielded <1,200 ms Wire)",
     leftBullets: [
-      "• 7-Gate Pipeline (run-7-gates.py + cxas-agent-foundry): PRD -> TDD -> Scaffold -> Lint -> 4 Eval Suites -> Auditor.",
-      "• Dual Linter Gate: uv run cxas lint (60+ static checks) + cxas llm-lint via autonomous lint-fixer subagent.",
-      "• Voice & Migration Skills: cxas-composite-voice-agent-optimizer (Band 1 auto-fix) & cxas-dfcx-migration.",
-      "• Production Flywheel: cxas-loss-analysis clusters CCAI Insights losses -> cxas-sim-eval regression suites."
+      "• 🛡️ [Band 4 Shield — tools/] 5s SLA timeout + attempt >= 2 breaker + 32-token Clean DTO + UNTRUSTED & NULL envelopes.",
+      "        ⬇  Sanitized, Self-Healing Deterministic Payloads  ⬇",
+      "• 🛡️ [Band 3 Shield — agents/] Single-Agent PIF XML (<role>, <constraints>, <error_protocol>, ${current_date}) + end_session.",
+      "        ⬇  Grounded Policy & Zero Hallucination  ⬇",
+      "• 🛡️ [Band 2 Shield — callbacks/] _initialized guard + <5 ms LlmResponse 403 Auth Gate + <2 ms PII scrubber + 0–1 ms contentFilter.",
+      "        ⬇  ⚡ PROTECTED <1,200 ms WIRE: Composite v2 + 0.26s/0.73s Fillers"
     ],
-    rightTitle: "🎯 3 Recommended Architectural Decisions",
+    rightBorder: "#10B981",
+    rightTitle: "🛠️ Verbatim Fixes & cxas Tooling (0E, 0W, 6/6 Chaos)",
     rightBullets: [
-      "1. Adopt the 4-Band (TCP/IP over L1–L7 OSI) Stack as the canonical GECX mental model in Bootcamp Ch 1, 4 & 6.",
-      "2. Tag cxas lint & cxas evals report output by Band & OSI Layer (e.g., [Band 1 / OSI L1 - Wire], [Band 4 / OSI L6b - DTO]).",
-      "3. Ship lab3_agentic_waf_visualizer.html alongside chaos_workshop_runner.py as the standard Lab 3 visual companion."
+      "• Band 1: gemini-composite-v2 + sonic-bolt (temp: 1.0, instruction: '', NO_INSTRUCTION, <Affective Delivery>, <prosody rate='64%'><warm>) + Two-Part Reply (0.73 s) / Callback Filler (0.26 s).",
+      "• Band 2: _initialized guard + before_model_callback returning LlmResponse (403_UNAUTHORIZED_ACCESS on Branch 0) + <2 ms after_tool_callback regex/PII scrubber + 0–1 ms contentFilter.",
+      "• Band 3: Single-Agent PIF XML (<role>, <constraints>, <error_protocol>, ${current_date}) + end_session + strict zero-hallucination groundedness.",
+      "• Band 4: Branch 1 5s SLA -> BILLING_GATEWAY_TIMEOUT + submit_support_ticket; Branch 2 attempt >= 2 -> 503_CIRCUIT_BREAKER_OPEN; Branch 3 Clean Store DTO (2,400 -> 32 tokens); Branch 4 UNTRUSTED_EXTERNAL_DATA; Branch 5 NULL_LEDGER_DATA."
     ],
-    notes: "Architectural Rationale for Engineering Leadership: Here is the key takeaway for Engineering. Antigravity + our skills already automate building, linting, and testing all 4 bands. By aligning CLI output and Bootcamp visuals around these 4 Bands (L1–L7 OSI), every CE, partner, and customer gets one unified language from the physical wire up."
+    footer: "Verified End-to-End via Automated Toolchain: uv run cxas lint --band • uv run cxas evals report • uv run cxas ci-test",
+    notes: "Architectural Rationale for Engineering Leadership: Comparing Slide 4 with Slide 5 shows defense-in-depth across every band: Band 1 upgrades to gemini-composite-v2 + sonic-bolt with NO_INSTRUCTION and 0.26 s / 0.73 s spoken fillers; Band 2 enforces _initialized, a <5 ms LlmResponse 403 Auth Gate on Branch 0, and a <2 ms PII scrubber; Band 3 enforces Single-Agent PIF XML and zero-hallucination groundedness; and Band 4 enforces a 5s SLA, 2-strike circuit breaker, and 32-token Clean DTOs—verified via cxas lint --band, cxas evals report, and cxas ci-test."
   }
 ];
 
+function getTextStyleCompat_(textRange) {
+  return typeof textRange.getTextStyle === "function"
+    ? textRange.getTextStyle()
+    : textRange.getStyle();
+}
+
 function buildVoiceWafSlides() {
   const pres = SlidesApp.getActivePresentation();
+
   SLIDE_DECK_SPEC.forEach((spec) => {
     const slide = pres.appendSlide(SlidesApp.PredefinedLayout.BLANK);
-    slide.getBackground().setSolidFill("#0B0F19");
+    slide.getBackground().setSolidFill("#070C18");
 
-    // Top Badge & Title
-    const headerBox = slide.insertTextBox(spec.badge + "\n" + spec.title + "\n" + spec.subtitle, 28, 18, 664, 78);
+    // Top Kicker Badge
+    const badgeBox = slide.insertTextBox(spec.badge, 28, 14, 664, 18);
+    getTextStyleCompat_(badgeBox.getText())
+      .setForegroundColor(spec.badgeColor)
+      .setFontFamily("Roboto")
+      .setFontSize(8.5)
+      .setBold(true);
+
+    // Slide Title & Subtitle
+    const headerBox = slide.insertTextBox(spec.title + "\n" + spec.subtitle, 28, 30, 664, 48);
     const headerText = headerBox.getText();
-    headerText.getStyle().setForegroundColor("#F8FAFC").setFontFamily("Roboto").setFontSize(16).setBold(true);
+    getTextStyleCompat_(headerText)
+      .setForegroundColor("#F8FAFC")
+      .setFontFamily("Roboto")
+      .setFontSize(13.5)
+      .setBold(true);
+    if (typeof headerText.getRange === "function") {
+      const subStart = spec.title.length + 1;
+      const fullLen = spec.title.length + 1 + spec.subtitle.length;
+      getTextStyleCompat_(headerText.getRange(subStart, fullLen))
+        .setForegroundColor("#94A3B8")
+        .setFontSize(9.5)
+        .setBold(false);
+    }
 
     // Left Card
-    const leftBox = slide.insertTextBox(spec.leftTitle + "\n\n" + spec.leftBullets.join("\n\n"), 28, 108, 322, 265);
-    leftBox.getFill().setSolidFill("#131B2E");
-    leftBox.getBorder().setWeight(1).getLineFill().setSolidFill("#EF4444");
-    leftBox.getText().getStyle().setForegroundColor("#E2E8F0").setFontFamily("Roboto").setFontSize(10.5);
+    const leftContent = spec.leftTitle + "\n\n" + spec.leftBullets.join("\n");
+    const leftBox = slide.insertTextBox(leftContent, 28, 84, 324, 282);
+    leftBox.getFill().setSolidFill("#0F172A");
+    leftBox.getBorder().setWeight(1.25).getLineFill().setSolidFill(spec.leftBorder);
+    const leftText = leftBox.getText();
+    getTextStyleCompat_(leftText)
+      .setForegroundColor("#E2E8F0")
+      .setFontFamily("Roboto")
+      .setFontSize(8.8)
+      .setBold(false);
+    if (typeof leftText.getRange === "function") {
+      getTextStyleCompat_(leftText.getRange(0, spec.leftTitle.length))
+        .setForegroundColor("#FFFFFF")
+        .setFontSize(10.2)
+        .setBold(true);
+    }
 
     // Right Card
-    const rightBox = slide.insertTextBox(spec.rightTitle + "\n\n" + spec.rightBullets.join("\n\n"), 368, 108, 324, 265);
-    rightBox.getFill().setSolidFill("#131B2E");
-    rightBox.getBorder().setWeight(1).getLineFill().setSolidFill("#10B981");
-    rightBox.getText().getStyle().setForegroundColor("#E2E8F0").setFontFamily("Roboto").setFontSize(10.5);
+    const rightContent = spec.rightTitle + "\n\n" + spec.rightBullets.join("\n");
+    const rightBox = slide.insertTextBox(rightContent, 368, 84, 324, 282);
+    rightBox.getFill().setSolidFill("#0F172A");
+    rightBox.getBorder().setWeight(1.25).getLineFill().setSolidFill(spec.rightBorder);
+    const rightText = rightBox.getText();
+    getTextStyleCompat_(rightText)
+      .setForegroundColor("#E2E8F0")
+      .setFontFamily("Roboto")
+      .setFontSize(8.8)
+      .setBold(false);
+    if (typeof rightText.getRange === "function") {
+      getTextStyleCompat_(rightText.getRange(0, spec.rightTitle.length))
+        .setForegroundColor("#FFFFFF")
+        .setFontSize(10.2)
+        .setBold(true);
+    }
+
+    // Bottom Verification / Anchor Footer Bar
+    const footerBox = slide.insertTextBox(spec.footer, 28, 372, 664, 20);
+    footerBox.getFill().setSolidFill("#111B31");
+    footerBox.getBorder().setWeight(0.75).getLineFill().setSolidFill("#233352");
+    getTextStyleCompat_(footerBox.getText())
+      .setForegroundColor("#94A3B8")
+      .setFontFamily("Roboto")
+      .setFontSize(8.2)
+      .setBold(true);
 
     // Speaker Notes
     slide.getNotesPage().getSpeakerNotesShape().getText().setText(spec.notes);

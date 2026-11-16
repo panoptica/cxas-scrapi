@@ -320,10 +320,11 @@ def test_html_report_renders_band_strip_and_waf_badges(tmp_path: Path) -> None:
     assert "Deterministic Python Harness" in html
     assert "Cognitive Brain &amp; Routing Topology" in html
     assert "Tool Transport &amp; Clean Data Facade" in html
-    assert "Pyramid L4: Audio Grand Prix" in html
-    assert "Pyramid L2: Callback Bench" in html
-    assert "Pyramid L3: Turn/Golden Chicane" in html
-    assert "Pyramid L1: Tool Dyno" in html
+    assert "5+1 CXAS Evaluation Pyramid" in html
+    assert "Pyramid L5: Simulation &amp; Audio Evals" in html
+    assert "Pyramid L2: Callback Tests" in html
+    assert "Pyramid L3-L4: Turn &amp; Golden Evals" in html
+    assert "Pyramid L1: Tool Tests" in html
 
     # 2. Inline [Band X / OSI LY • Pillar] badges on failed eval rows
     assert "waf-layer-badge" in html

@@ -15,7 +15,7 @@
 """GECX "TCP/IP over OSI" Hybrid Voice Architecture & WAF Layer Taxonomy.
 
 Maps lint rules, semantic prompt checks, and evaluation outcomes onto:
-  1. 4 Engineering Macro-Bands (matching cxas_app & F1 Testing Pyramid)
+  1. 4 Engineering Macro-Bands (aligned to the 5+1 CXAS Evaluation Pyramid)
   2. L1-L7 Agentic OSI Diagnostic Layers
   3. 5 Google Cloud Agentic Well-Architected Framework (WAF) Pillars
 """
@@ -25,7 +25,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-# ── Canonical WAF Pillars ────────────────────────────────────────────────
+# -- Canonical WAF Pillars ----------------------------------------------------
 
 WAF_PERFORMANCE = "Performance"
 WAF_SECURITY = "Security"
@@ -73,24 +73,36 @@ def normalize_waf_pillar(value: str | None) -> str | None:
     raise ValueError(msg)
 
 
-# ── Canonical 4 Engineering Macro-Bands ──────────────────────────────────
+# -- Canonical 5+1 CXAS Evaluation Pyramid -----------------------------------
+
+EVAL_PYRAMID_LAYERS: dict[str, str] = {
+    "L0": "Pyramid L0: Static Lint Gate (cxas lint / cxas llm-lint)",
+    "L1": "Pyramid L1: Tool Tests (cxas test tools)",
+    "L2": "Pyramid L2: Callback Tests (cxas test callbacks)",
+    "L3": "Pyramid L3: Turn Evals (single-turn deterministic state)",
+    "L4": "Pyramid L4: Golden Evals (multi-turn deterministic baseline)",
+    "L5": "Pyramid L5: Simulation & Audio Evals (live wire & acoustic SNR)",
+}
+
+
+# -- Canonical 4 Engineering Macro-Bands -------------------------------------
 
 MACRO_BANDS: dict[int, dict[str, Any]] = {
     1: {
         "band": 1,
         "name": "Acoustic Wire & Turn Pacing",
         "short_name": "Wire & Pacing",
-        "osi_layers": "OSI L1–L2",
+        "osi_layers": "OSI L1\u2013L2",
         "artifact_scope": "app.json & Tool Pacing",
-        "pyramid_layer": "Pyramid L4: Audio Grand Prix",
+        "pyramid_layer": "Pyramid L5: Simulation & Audio Evals",
     },
     2: {
         "band": 2,
         "name": "Deterministic Python Harness",
         "short_name": "Python Harness",
-        "osi_layers": "OSI L5–L6a",
+        "osi_layers": "OSI L5\u2013L6a",
         "artifact_scope": "callbacks/ & session.state",
-        "pyramid_layer": "Pyramid L2: Callback Bench",
+        "pyramid_layer": "Pyramid L2: Callback Tests",
     },
     3: {
         "band": 3,
@@ -98,7 +110,7 @@ MACRO_BANDS: dict[int, dict[str, Any]] = {
         "short_name": "Brain & Routing",
         "osi_layers": "OSI L3 & L7",
         "artifact_scope": "agents/*/instruction.txt & routing",
-        "pyramid_layer": "Pyramid L3: Turn/Golden Chicane",
+        "pyramid_layer": "Pyramid L3-L4: Turn & Golden Evals",
     },
     4: {
         "band": 4,
@@ -106,7 +118,7 @@ MACRO_BANDS: dict[int, dict[str, Any]] = {
         "short_name": "Tools & DTOs",
         "osi_layers": "OSI L4 & L6b",
         "artifact_scope": "tools/*/python_code.py",
-        "pyramid_layer": "Pyramid L1: Tool Dyno",
+        "pyramid_layer": "Pyramid L1: Tool Tests",
     },
 }
 
