@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GECX Layered Voice Architecture &amp; AGY Automation — Engineering Architecture Brief</title>
+  <style>
+    :root {
+      --bg-dark: #080d1a;
+      --bg-card: #0f172a;
+      --bg-card-hover: #17233f;
+      --bg-panel: #141e34;
+      --border: #243452;
+      --border-bright: #3b82f6;
+
+      /* Macro-Band Colors */
+      --band4-color: #f97316; /* Amber/Orange - Tool Transport */
+      --band4-bg: rgba(249, 115, 22, 0.12);
+      --band4-border: rgba(249, 115, 22, 0.45);
+
+      --band3-color: #a855f7; /* Purple - Cognitive Brain */
+      --band3-bg: rgba(168, 85, 247, 0.12);
+      --band3-border: rgba(168, 85, 247, 0.45);
+
+      --band2-color: #10b981; /* Emerald/Green - Deterministic Harness */
+      --band2-bg: rgba(16, 185, 129, 0.12);
+      --band2-border: rgba(16, 185, 129, 0.45);
+
+      --band1-color: #38bdf8; /* Cyan/Blue - Acoustic Wire */
+      --band1-bg: rgba(56, 189, 248, 0.12);
+      --band1-border: rgba(56, 189, 248, 0.45);
+
+      /* Google Cloud Brand */
+      --google-blue: #4285f4;
+      --google-red: #ea4335;
+      --google-yellow: #fbbc04;
+      --google-green: #34a853;
+
+      /* Neutral Typography */
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Google Sans", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+    }
+
+    /* Top Application Bar */
+    header.deck-header {
+      height: 52px;
+      min-height: 52px;
+      background: rgba(15, 23, 42, 0.96);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 50;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .cloud-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+    }
+    .cloud-logo span:nth-child(1) { color: var(--google-blue); }
+    .cloud-logo span:nth-child(2) { color: var(--google-red); }
+    .cloud-logo span:nth-child(3) { color: var(--google-yellow); }
+    .cloud-logo span:nth-child(4) { color: var(--google-green); }
+
+    .brand-divider {
+      width: 1px;
+      height: 18px;
+      background: var(--border);
+    }
+
+    .deck-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .deck-tag {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: rgba(59, 130, 246, 0.15);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      font-weight: 700;
+    }
+
+    .nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .slide-dots {
+      display: flex;
+      gap: 6px;
+      margin-right: 8px;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--border);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .dot.active {
+      background: var(--google-blue);
+      transform: scale(1.25);
+      box-shadow: 0 0 8px rgba(66, 133, 244, 0.6);
+    }
+
+    .counter-pill {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: #111a2f;
+      border: 1px solid var(--border);
+      padding: 3px 10px;
+      border-radius: 6px;
+      min-width: 58px;
+      text-align: center;
+    }
+
+    .btn {
+      background: #1a2742;
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      font-family: var(--font-sans);
+    }
+
+    .btn:hover {
+      background: #24355a;
+      border-color: #3b82f6;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background: rgba(66, 133, 244, 0.15);
+      color: #93c5fd;
+      border-color: rgba(66, 133, 244, 0.4);
+    }
+
+    .btn-primary:hover {
+      background: rgba(66, 133, 244, 0.28);
+      border-color: #60a5fa;
+    }
+
+    .btn-notes.active {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fcd34d;
+      border-color: rgba(245, 158, 11, 0.5);
+    }
+
+    kbd {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      background: #0d1527;
+      border: 1px solid #2d3f66;
+      border-radius: 3px;
+      padding: 1px 4px;
+      color: #94a3b8;
+    }
+
+    /* Main Deck Stage */
+    main.deck-stage {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 50% 30%, #111c38 0%, var(--bg-dark) 75%);
+      padding: 20px 32px;
+      overflow: hidden;
+    }
+
+    .slides-container {
+      width: 100%;
+      height: 100%;
+      max-width: 1600px;
+      aspect-ratio: 16 / 9;
+      position: relative;
+      display: flex;
+    }
+
+    /* Individual Slide */
+    .slide {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(12px) scale(0.995);
+      transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s;
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.94) 0%, rgba(10, 16, 30, 0.98) 100%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 36px 48px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.65), 0 0 1px 1px rgba(255, 255, 255, 0.05);
+      overflow-y: auto;
+    }
+
+    .slide.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0) scale(1);
+      z-index: 10;
+    }
+
+    /* Slide Header */
+    .slide-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 14px;
+    }
+
+    .slide-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .slide-kicker {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: #60a5fa;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .slide-title {
+      font-size: 26px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.5px;
+      line-height: 1.25;
+    }
+
+    .slide-subtitle {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      margin-top: 3px;
+      line-height: 1.4;
+    }
+
+    .slide-number-stamp {
+      font-family: var(--font-mono);
+      font-size: 28px;
+      font-weight: 800;
+      color: rgba(255, 255, 255, 0.08);
+      line-height: 1;
+    }
+
+    /* Content Layout Grids */
+    .slide-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      justify-content: center;
+    }
+
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .grid-4col {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    /* Cards & Panels */
+    .card {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .card.highlight {
+      border-color: rgba(66, 133, 244, 0.4);
+      background: rgba(30, 41, 59, 0.6);
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Latency Hero Meter */
+    .hero-stat-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 8px;
+    }
+
+    .stat-box {
+      background: #0d1528;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-box.danger {
+      border-color: rgba(239, 68, 68, 0.4);
+      background: rgba(239, 68, 68, 0.06);
+    }
+
+    .stat-box.success {
+      border-color: rgba(16, 185, 129, 0.4);
+      background: rgba(16, 185, 129, 0.08);
+    }
+
+    .stat-box.accent {
+      border-color: rgba(56, 189, 248, 0.4);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .stat-num {
+      font-family: var(--font-mono);
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+
+    .danger .stat-num { color: #f87171; }
+    .success .stat-num { color: #34d399; }
+    .accent .stat-num { color: #38bdf8; }
+
+    .stat-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+    }
+
+    .stat-desc {
+      font-size: 11.5px;
+      color: #94a3b8;
+      line-height: 1.3;
+    }
+
+    /* Comparison Table */
+    .comp-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      font-size: 12px;
+      background: rgba(13, 21, 40, 0.6);
+    }
+
+    .comp-table th {
+      background: #142038;
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 700;
+      color: #e2e8f0;
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+      font-size: 10.5px;
+      letter-spacing: 0.6px;
+    }
+
+    .comp-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(36, 52, 82, 0.6);
+      color: #cbd5e1;
+      vertical-align: top;
+      line-height: 1.4;
+    }
+
+    .comp-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .comp-table tr.winner-row {
+      background: rgba(16, 185, 129, 0.09);
+    }
+
+    .comp-table tr.winner-row td {
+      color: #f1f5f9;
+      font-weight: 500;
+    }
+
+    /* Stack Macro-Bands (Horizontal Stacking) */
+    .stack-layers {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .macro-band {
+      border-radius: 8px;
+      padding: 13px 18px;
+      display: grid;
+      grid-template-columns: 240px 1fr 280px;
+      align-items: center;
+      gap: 16px;
+      border: 1px solid;
+      position: relative;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .macro-band:hover {
+      transform: translateX(4px);
+    }
+
+    .band-4 {
+      background: var(--band4-bg);
+      border-color: var(--band4-border);
+    }
+    .band-3 {
+      background: var(--band3-bg);
+      border-color: var(--band3-border);
+    }
+    .band-2 {
+      background: var(--band2-bg);
+      border-color: var(--band2-border);
+    }
+    .band-1 {
+      background: var(--band1-bg);
+      border-color: var(--band1-border);
+    }
+
+    .band-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .band-badge {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .band-4 .band-badge { color: var(--band4-color); }
+    .band-3 .band-badge { color: var(--band3-color); }
+    .band-2 .band-badge { color: var(--band2-color); }
+    .band-1 .band-badge { color: var(--band1-color); }
+
+    .band-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .band-folder {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #cbd5e1;
+    }
+
+    .band-osi-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 11.5px;
+      color: #e2e8f0;
+      line-height: 1.35;
+    }
+
+    .band-sla {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    .sla-pill {
+      display: inline-block;
+      align-self: flex-end;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 10.5px;
+    }
+
+    .band-4 .sla-pill { background: rgba(249, 115, 22, 0.2); color: #fdba74; }
+    .band-3 .sla-pill { background: rgba(168, 85, 247, 0.2); color: #d8b4fe; }
+    .band-2 .sla-pill { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
+    .band-1 .sla-pill { background: rgba(56, 189, 248, 0.2); color: #7dd3fc; }
+
+    /* WAF Badge Pills */
+    .waf-pill {
+      font-size: 9.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .waf-sec { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.35); }
+    .waf-rel { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.35); }
+    .waf-perf { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.35); }
+    .waf-cost { background: rgba(245, 158, 11, 0.2); color: #fde68a; border: 1px solid rgba(245, 158, 11, 0.35); }
+    .waf-ops { background: rgba(168, 85, 247, 0.2); color: #e9d5ff; border: 1px solid rgba(168, 85, 247, 0.35); }
+
+    /* Pyramid alignment items */
+    .pyramid-card {
+      background: #0d1528;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+    }
+
+    .pyramid-level {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #94a3b8;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .pyramid-cost {
+      color: #10b981;
+      font-weight: 800;
+    }
+
+    .pyramid-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .pyramid-match {
+      font-size: 11px;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Decision Callout Box */
+    .callout-box {
+      background: rgba(30, 41, 59, 0.7);
+      border-left: 4px solid var(--google-blue);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .callout-box.gold {
+      border-left-color: #f59e0b;
+      background: rgba(245, 158, 11, 0.08);
+    }
+
+    .callout-title {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .callout-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 11.5px;
+      color: #cbd5e1;
+    }
+
+    .callout-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      line-height: 1.4;
+    }
+
+    .callout-list li strong {
+      color: #ffffff;
+    }
+
+    /* Slide Bottom Footer */
+    .slide-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 14px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .slide-footer .notes-prompt {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #f59e0b;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .slide-footer .notes-prompt:hover {
+      text-decoration: underline;
+    }
+
+    /* Speaker Notes Slide-Over Drawer */
+    .notes-drawer {
+      position: fixed;
+      top: 52px;
+      right: 0;
+      bottom: 0;
+      width: 480px;
+      max-width: 90vw;
+      background: rgba(11, 18, 33, 0.98);
+      backdrop-filter: blur(20px);
+      border-left: 1px solid rgba(245, 158, 11, 0.3);
+      box-shadow: -15px 0 40px rgba(0, 0, 0, 0.7);
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .notes-drawer.open {
+      transform: translateX(0);
+    }
+
+    .drawer-header {
+      padding: 16px 20px;
+      background: rgba(245, 158, 11, 0.12);
+      border-bottom: 1px solid rgba(245, 158, 11, 0.25);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .drawer-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #fef3c7;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .drawer-close {
+      background: transparent;
+      border: none;
+      color: #fef3c7;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+    }
+
+    .drawer-close:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .drawer-body {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      font-size: 13.5px;
+      line-height: 1.6;
+      color: #e2e8f0;
+    }
+
+    .drawer-target-slide {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #f59e0b;
+      margin-bottom: -8px;
+    }
+
+    .notes-quote {
+      background: rgba(245, 158, 11, 0.08);
+      border-left: 3px solid #f59e0b;
+      padding: 12px 14px;
+      border-radius: 0 6px 6px 0;
+      font-style: italic;
+      color: #fde68a;
+      font-size: 13px;
+    }
+
+    .drawer-footer {
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+      background: #0d1528;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    /* Print & PDF Media Styling */
+    @media print {
+      @page {
+        size: landscape;
+        margin: 0;
+      }
+
+      body {
+        background: #080d1a !important;
+        color: #f8fafc !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        overflow: visible !important;
+        width: 100% !important;
+        height: auto !important;
+      }
+
+      header.deck-header,
+      .notes-drawer,
+      .slide-dots,
+      .nav-controls,
+      .notes-prompt,
+      kbd {
+        display: none !important;
+      }
+
+      main.deck-stage {
+        padding: 0 !important;
+        background: none !important;
+        overflow: visible !important;
+        display: block !important;
+      }
+
+      .slides-container {
+        max-width: none !important;
+        width: 100% !important;
+        height: auto !important;
+        display: block !important;
+        aspect-ratio: auto !important;
+      }
+
+      .slide {
+        position: relative !important;
+        inset: auto !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: none !important;
+        display: flex !important;
+        page-break-after: always !important;
+        break-after: page !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        padding: 40px 56px !important;
+        overflow: hidden !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Deck Top Bar -->
+  <header class="deck-header">
+    <div class="brand-group">
+      <div class="cloud-logo">
+        <span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span>
+      </div>
+      <div class="brand-divider"></div>
+      <div class="deck-title">
+        <span>GECX Layered Voice Architecture &amp; AGY Automation</span>
+        <span class="deck-tag">Engineering Architecture Brief</span>
+      </div>
+    </div>
+
+    <div class="nav-controls">
+      <div class="slide-dots" id="slideDots">
+        <div class="dot active" onclick="goToSlide(0)" title="Slide 1"></div>
+        <div class="dot" onclick="goToSlide(1)" title="Slide 2"></div>
+        <div class="dot" onclick="goToSlide(2)" title="Slide 3"></div>
+        <div class="dot" onclick="goToSlide(3)" title="Slide 4"></div>
+        <div class="dot" onclick="goToSlide(4)" title="Slide 5"></div>
+      </div>
+
+      <div class="counter-pill" id="slideCounter">1 / 5</div>
+
+      <button class="btn" onclick="prevSlide()" title="Previous slide (Left Arrow)">
+        <span>◀</span> Prev <kbd>←</kbd>
+      </button>
+
+      <button class="btn" onclick="nextSlide()" title="Next slide (Right Arrow or Space)">
+        Next <span>▶</span> <kbd>→</kbd>
+      </button>
+
+      <button class="btn btn-notes" id="notesToggleBtn" onclick="toggleNotes()" title="Toggle Speaker Notes (N)">
+        <span>🎙️</span> Notes <kbd>N</kbd>
+      </button>
+
+      <button class="btn btn-primary" onclick="printDeck()" title="Save as PDF / Print">
+        <span>🖨️</span> PDF / Print
+      </button>
+    </div>
+  </header>
+
+  <!-- Deck Presentation Stage -->
+  <main class="deck-stage">
+    <div class="slides-container">
+
+      <!-- ==================== SLIDE 1 ==================== -->
+      <section class="slide active" id="slide-0">
+        <div class="slide-top">
+          <div class="slide-meta">
+            <div class="slide-kicker">
+              <span>Executive Context</span> • <span>Physical Telephony Wire</span>
+            </div>
+            <h1 class="slide-title">Why We Are Doing This Whole Thing — The &lt;1,200ms Physical Voice Wire</h1>
+            <p class="slide-subtitle">
+              Telephony physics vs. the flat chatbot illusion: Every upper-layer pattern exists to protect the 1,200ms human ear ceiling.
+            </p>
+          </div>
+          <div class="slide-number-stamp">01</div>
+        </div>
+
+        <div class="slide-body">
+          <div class="hero-stat-row">
+            <div class="stat-box danger">
+              <div class="stat-label">Human Ear Ceiling</div>
+              <div class="stat-num">1,200ms</div>
+              <div class="stat-desc">Caller assumes dropped line or barges in over the bot.</div>
+            </div>
+            <div class="stat-box success">
+              <div class="stat-label">Gemini Composite TTFA</div>
+              <div class="stat-num">&lt;800ms</div>
+              <div class="stat-desc">Native speech-to-speech without chained cascaded pipeline.</div>
+            </div>
+            <div class="stat-box success">
+              <div class="stat-label">Python Harness Latency</div>
+              <div class="stat-num">&lt;5ms</div>
+              <div class="stat-desc">Deterministic auth gates &amp; scrubbers with 0 LLM token cost.</div>
+            </div>
+            <div class="stat-box accent">
+              <div class="stat-label">Tool Execution SLA</div>
+              <div class="stat-num">5,000ms</div>
+              <div class="stat-desc">Masked safely on wire via Rule T014 Spoken Filler Bridges.</div>
+            </div>
+          </div>
+
+          <table class="comp-table">
+            <thead>
+              <tr>
+                <th style="width: 26%;">Architecture Approach</th>
+                <th style="width: 38%;">Wire Latency Breakdown</th>
+                <th style="width: 36%;">Caller Experience on Telephony Wire</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Legacy 3-Stage Pipeline</strong><br/><span style="color: #94a3b8; font-size: 11px;">Chained ASR + LLM + TTS</span></td>
+                <td><code>ASR (400ms) + LLM (500ms) + TTS (300ms)</code> = <strong>1,500–2,500ms</strong></td>
+                <td><span style="color: #f87171;">❌ Dead Air:</span> Blows the 1,200ms budget before a single tool or safety check runs.</td>
+              </tr>
+              <tr>
+                <td><strong>Inline LLM Guardrails</strong><br/><span style="color: #94a3b8; font-size: 11px;">Supervisor bot hops before/after</span></td>
+                <td><strong>+800ms</strong> per pre/post LLM supervisor hop</td>
+                <td><span style="color: #f87171;">❌ Compounding Latency:</span> Turns every safety validation into noticeable dead air.</td>
+              </tr>
+              <tr>
+                <td><strong>Unbounded Backend Tool</strong><br/><span style="color: #94a3b8; font-size: 11px;">Lab 3 Chaos Branch 1</span></td>
+                <td><strong>35,000ms</strong> billing hang vs. <strong>30,000ms</strong> Platform Harpoon</td>
+                <td><span style="color: #f87171;">❌ Hard Disconnect:</span> Platform terminates call abruptly; terrible customer rage.</td>
+              </tr>
+              <tr class="winner-row">
+                <td><strong>GECX Well-Architected Voice Stack</strong><br/><span style="color: #34d399; font-size: 11px;">Composite + Callbacks + T014</span></td>
+                <td><strong>Gemini Composite (&lt;800ms TTFA)</strong> + <strong>&lt;5ms Python Callbacks</strong> + <strong>Rule T014 Fillers</strong></td>
+                <td><span style="color: #34d399;">✅ Natural Acoustics:</span> Sub-second conversational pacing while masking a bounded 5s backend SLA.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="slide-footer">
+          <span>GECX Foundation • Physical Layer Anchor</span>
+          <span class="notes-prompt" onclick="toggleNotes()">🎙️ View Speaker Notes (Press N)</span>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 2 ==================== -->
+      <section class="slide" id="slide-1">
+        <div class="slide-top">
+          <div class="slide-meta">
+            <div class="slide-kicker">
+              <span>Mental Model</span> • <span>Unified Architecture</span>
+            </div>
+            <h1 class="slide-title">The Mental Model — "TCP/IP over OSI" for Voice Agents</h1>
+            <p class="slide-subtitle">
+              4 Engineering Macro-Bands (TCP/IP builder's model) × L1–L7 Agentic OSI Diagnostic Layers (forensic debugging).
+            </p>
+          </div>
+          <div class="slide-number-stamp">02</div>
+        </div>
+
+        <div class="slide-body">
+          <div class="stack-layers">
+            <!-- Band 4 -->
+            <div class="macro-band band-4">
+              <div class="band-meta">
+                <div class="band-badge">🟧 MACRO-BAND 4</div>
+                <div class="band-title">Tool Transport &amp; Clean Data Facade</div>
+                <div class="band-folder"><code>tools/*/python_code.py</code></div>
+              </div>
+              <div class="band-osi-list">
+                <div>• <strong>OSI L4 (Transport SLA &amp; Circuit Breaker):</strong> Bounded 5s Client SLA inside 30s Harpoon + stateful 503 circuit breaker (attempt &ge; 2).</div>
+                <div>• <strong>OSI L6b (Presentation / Clean DTO):</strong> Sanitized DTO projection (<em>"Can't leak what it never saw"</em>), <code>NULL_LEDGER_DATA</code> envelopes.</div>
+              </div>
+              <div class="band-sla">
+                <span class="sla-pill">&le;5,000ms SLA</span>
+                <span style="color: #fdba74; font-size: 10px;">Pyramid L1 Dyno (50ms)</span>
+              </div>
+            </div>
+
+            <!-- Band 3 -->
+            <div class="macro-band band-3">
+              <div class="band-meta">
+                <div class="band-badge">🟪 MACRO-BAND 3</div>
+                <div class="band-title">Cognitive Brain &amp; Routing Topology</div>
+                <div class="band-folder"><code>agents/root_agent/</code></div>
+              </div>
+              <div class="band-osi-list">
+                <div>• <strong>OSI L3 (Network Routing Topology):</strong> Shallow Spoke-and-Hub routing (&lt;500ms hop) + native <code>end_session</code> (Rule A005).</div>
+                <div>• <strong>OSI L7 (Application XML Policy):</strong> Structured XML contract (<code>&lt;role&gt;</code>, <code>&lt;persona&gt;</code>, <code>&lt;constraints&gt;</code>, <code>&lt;taskflow&gt;</code>) + strict Groundedness.</div>
+              </div>
+              <div class="band-sla">
+                <span class="sla-pill">&lt;500ms Routing Hop</span>
+                <span style="color: #d8b4fe; font-size: 10px;">Pyramid L3 Chicane (~5s)</span>
+              </div>
+            </div>
+
+            <!-- Band 2 -->
+            <div class="macro-band band-2">
+              <div class="band-meta">
+                <div class="band-badge">🟩 MACRO-BAND 2</div>
+                <div class="band-title">Deterministic Python Harness</div>
+                <div class="band-folder"><code>callbacks/ + session.state</code></div>
+              </div>
+              <div class="band-osi-list">
+                <div>• <strong>OSI L5 (Session &amp; Auth Gate):</strong> Synchronous <code>before_model_callback</code> returning <code>Optional[LlmResponse]</code> in &lt;5ms.</div>
+                <div>• <strong>OSI L6a (Presentation / Post-Tool Interceptor):</strong> <code>after_tool_callback</code> deterministically scrubbing secrets &amp; injection in &lt;2ms.</div>
+              </div>
+              <div class="band-sla">
+                <span class="sla-pill">&lt;5ms Gate SLA</span>
+                <span style="color: #6ee7b7; font-size: 10px;">Pyramid L2 Bench (200ms)</span>
+              </div>
+            </div>
+
+            <!-- Band 1 -->
+            <div class="macro-band band-1">
+              <div class="band-meta">
+                <div class="band-badge">🟦 MACRO-BAND 1 (BASE)</div>
+                <div class="band-title">Acoustic Wire &amp; Turn Pacing</div>
+                <div class="band-folder"><code>app.json + Director's Notes</code></div>
+              </div>
+              <div class="band-osi-list">
+                <div>• <strong>OSI L1 (Physical Wire &amp; Audio Stream):</strong> RTP stream, SBC barge-in buffer flush, Gemini Composite <code>temp=1.0</code>, Director's Notes.</div>
+                <div>• <strong>OSI L2 (Data Link / Turn Framing):</strong> Rule T014 spoken bridge fillers (<em>"Tell them, then do it"</em>) + 3-strike VAD silence framing.</div>
+              </div>
+              <div class="band-sla">
+                <span class="sla-pill">&lt;800ms TTFA Baseline</span>
+                <span style="color: #7dd3fc; font-size: 10px;">Pyramid L4 Grand Prix (~30s)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <span>Folder Structure Matches Architecture (<code>app.json</code>, <code>callbacks/</code>, <code>agents/</code>, <code>tools/</code>)</span>
+          <span class="notes-prompt" onclick="toggleNotes()">🎙️ View Speaker Notes (Press N)</span>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 3 ==================== -->
+      <section class="slide" id="slide-2">
+        <div class="slide-top">
+          <div class="slide-meta">
+            <div class="slide-kicker">
+              <span>Chaos Engineering</span> • <span>Agentic WAF Mapping</span>
+            </div>
+            <h1 class="slide-title">Lab 3 Chaos Workshop Mapped to Stack &amp; Google Cloud WAF</h1>
+            <p class="slide-subtitle">
+              Every failure injection branch in <code>failure_workshop_agent</code> maps to a specific layer and Google Cloud Agentic WAF pillar.
+            </p>
+          </div>
+          <div class="slide-number-stamp">03</div>
+        </div>
+
+        <div class="slide-body">
+          <table class="comp-table" style="font-size: 11px;">
+            <thead>
+              <tr>
+                <th style="width: 14%;">Macro-Band</th>
+                <th style="width: 14%;">OSI Diagnostic</th>
+                <th style="width: 27%;">Lab 3 Broken Anti-Pattern (<code>failure_agent</code>)</th>
+                <th style="width: 28%;">Well-Architected Pattern (<code>success_agent</code>)</th>
+                <th style="width: 17%;">Agentic WAF Pillar</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong style="color: var(--band4-color);">🟧 Band 4</strong><br/><code>tools/</code></td>
+                <td><strong>L6b: Presentation</strong><br/>Clean DTO Facade</td>
+                <td>
+                  <strong>Branch 3:</strong> Leaks <code>SECRET_KEY</code> &amp; manager cell.<br/>
+                  <strong>Branch 4:</strong> Raw CRM $500 prompt injection.<br/>
+                  <strong>Branch 5:</strong> Raw <code>{'fee_amount': None}</code>.
+                </td>
+                <td>
+                  <strong>Clean Data Facade DTO</strong> (<em>"Can't leak what it never saw"</em>), <code>UNTRUSTED_EXTERNAL_DATA</code> envelope tagging, explicit <code>NULL_LEDGER_DATA</code>.
+                </td>
+                <td>
+                  <span class="waf-pill waf-sec">🛡️ Security</span><br/>
+                  <span class="waf-pill waf-rel" style="margin-top: 3px;">⚙️ Reliability</span>
+                </td>
+              </tr>
+              <tr>
+                <td><strong style="color: var(--band4-color);">🟧 Band 4</strong><br/><code>tools/</code></td>
+                <td><strong>L4: Transport</strong><br/>Execution SLA</td>
+                <td>
+                  <strong>Branch 1:</strong> 35s billing hang hits 30s Harpoon.<br/>
+                  <strong>Branch 2:</strong> 503 triggers 5x infinite retry storm.
+                </td>
+                <td>
+                  <strong>Bounded 5s Client SLA Timeout</strong> (<code>BILLING_TIMEOUT</code> &rarr; Ticket) + <strong>Stateful Circuit Breaker</strong> (<code>attempt &ge; 2</code>).
+                </td>
+                <td>
+                  <span class="waf-pill waf-rel">⚙️ Reliability</span><br/>
+                  <span class="waf-pill waf-cost" style="margin-top: 3px;">💰 Cost Optimization</span>
+                </td>
+              </tr>
+              <tr>
+                <td><strong style="color: var(--band3-color);">🟪 Band 3</strong><br/><code>agents/</code></td>
+                <td><strong>L7: XML Policy</strong><br/><strong>L3: Routing</strong></td>
+                <td>
+                  Rules <code>I001–I014</code>: 6-line flat prompt, obeys $500 override, hallucinates $25 fee. Rule <code>A005</code> missing <code>end_session</code>.
+                </td>
+                <td>
+                  <strong>Structured XML Contract</strong> (<code>&lt;role&gt;</code>, <code>&lt;constraints&gt;</code>) + <strong>Zero-Hallucination Groundedness</strong> + explicit <code>end_session</code>.
+                </td>
+                <td>
+                  <span class="waf-pill waf-ops">📋 Operational Ex.</span><br/>
+                  <span class="waf-pill waf-rel" style="margin-top: 3px;">⚙️ Reliability</span>
+                </td>
+              </tr>
+              <tr>
+                <td><strong style="color: var(--band2-color);">🟩 Band 2</strong><br/><code>callbacks/</code></td>
+                <td><strong>L5: Session Auth</strong><br/><strong>L6a: Scrubbing</strong></td>
+                <td>
+                  Rules <code>V002/S003</code>: Broken callback returns dict.<br/>
+                  <strong>Branch 0:</strong> Unauthenticated caller gets $142.85 balance + SSN "9921".
+                </td>
+                <td>
+                  <strong>Two-Plane Synchronous Auth Gate</strong> (<code>before_model</code> returns <code>LlmResponse</code> in &lt;5ms) + <code>after_tool_callback</code> PII scrubber.
+                </td>
+                <td>
+                  <span class="waf-pill waf-sec">🛡️ Security</span><br/>
+                  <span class="waf-pill waf-cost" style="margin-top: 3px;">💰 Cost Optimization</span>
+                </td>
+              </tr>
+              <tr>
+                <td><strong style="color: var(--band1-color);">🟦 Band 1</strong><br/><code>app.json</code></td>
+                <td><strong>L1: Physical Wire</strong><br/><strong>L2: Pacing</strong></td>
+                <td>
+                  Rule <code>T014</code>: 0 spoken fillers (dead air).<br/>
+                  Rule <code>A010</code>: <code>temp=0.2</code> deadlock, <code>bargeInAwareness=false</code>, missing Director's Notes.
+                </td>
+                <td>
+                  <strong>Rule T014 Spoken Filler Bridge</strong> (<em>"Tell them, then do it"</em>) + <strong>Gemini Composite Native Audio</strong> (<code>temp=1.0</code>, SBC barge-in flush).
+                </td>
+                <td>
+                  <span class="waf-pill waf-perf">⚡ Performance Opt.</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="slide-footer">
+          <span>Static Lint Diagnostics (10 errors, 17 warnings) + 6 Chaos Branches Fully Reconciled</span>
+          <span class="notes-prompt" onclick="toggleNotes()">🎙️ View Speaker Notes (Press N)</span>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 4 ==================== -->
+      <section class="slide" id="slide-3">
+        <div class="slide-top">
+          <div class="slide-meta">
+            <div class="slide-kicker">
+              <span>Engineering Velocity</span> • <span>Test Driven Development</span>
+            </div>
+            <h1 class="slide-title">1-to-1 Alignment: 4 Architecture Bands ↔ 4-Layer F1 Testing Pyramid</h1>
+            <p class="slide-subtitle">
+              Catching L4–L7 voice bugs in milliseconds at zero token cost before running a single live audio simulation.
+            </p>
+          </div>
+          <div class="slide-number-stamp">04</div>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-2col">
+            <!-- Left: Architecture Stack -->
+            <div class="card">
+              <div class="card-title">
+                <span>🏗️</span> 4-Band Voice Agent Architecture
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <div style="padding: 8px 12px; background: var(--band4-bg); border: 1px solid var(--band4-border); border-radius: 6px;">
+                  <strong style="color: var(--band4-color); font-size: 11.5px;">🟧 Band 4: Tools &amp; Clean DTOs</strong>
+                  <div style="font-size: 11px; color: #cbd5e1;">OSI L4 Transport SLA &amp; L6b DTO Projection Facade</div>
+                </div>
+                <div style="padding: 8px 12px; background: var(--band2-bg); border: 1px solid var(--band2-border); border-radius: 6px;">
+                  <strong style="color: var(--band2-color); font-size: 11.5px;">🟩 Band 2: Deterministic Python Harness</strong>
+                  <div style="font-size: 11px; color: #cbd5e1;">OSI L5 Auth Gate &amp; L6a Post-Tool PII/Injection Scrubber</div>
+                </div>
+                <div style="padding: 8px 12px; background: var(--band3-bg); border: 1px solid var(--band3-border); border-radius: 6px;">
+                  <strong style="color: var(--band3-color); font-size: 11.5px;">🟪 Band 3: Cognitive XML Brain</strong>
+                  <div style="font-size: 11px; color: #cbd5e1;">OSI L3 Routing Topology &amp; L7 XML Groundedness Policy</div>
+                </div>
+                <div style="padding: 8px 12px; background: var(--band1-bg); border: 1px solid var(--band1-border); border-radius: 6px;">
+                  <strong style="color: var(--band1-color); font-size: 11.5px;">🟦 Band 1: Physical Voice Wire</strong>
+                  <div style="font-size: 11px; color: #cbd5e1;">OSI L1 Acoustic Stream &amp; L2 Turn Pacing / Silence Framing</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: F1 Testing Pyramid -->
+            <div class="card highlight">
+              <div class="card-title">
+                <span>🏎️</span> 4-Layer F1 Testing Pyramid (CE Module 4)
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <div class="pyramid-card">
+                  <div class="pyramid-level">
+                    <span>PYRAMID L1 • WORKSHOP DYNO</span>
+                    <span class="pyramid-cost">50ms • 0 Tokens</span>
+                  </div>
+                  <div class="pyramid-name">pytest test_tools.py + uv run cxas lint</div>
+                  <div class="pyramid-match">↔ Validates Band 4 (DTO schema, null safety, timeout handles)</div>
+                </div>
+
+                <div class="pyramid-card">
+                  <div class="pyramid-level">
+                    <span>PYRAMID L2 • BENCH ASSEMBLY</span>
+                    <span class="pyramid-cost">200ms • 0 Tokens</span>
+                  </div>
+                  <div class="pyramid-name">pytest test_callbacks.py</div>
+                  <div class="pyramid-match">↔ Validates Band 2 (Auth gate short-circuits &amp; post-tool scrubbers)</div>
+                </div>
+
+                <div class="pyramid-card">
+                  <div class="pyramid-level">
+                    <span>PYRAMID L3 • SIM-RIG CHICANE</span>
+                    <span class="pyramid-cost">~5s • Low Tokens</span>
+                  </div>
+                  <div class="pyramid-name">uv run cxas llm-lint + Frozen Golden Evals</div>
+                  <div class="pyramid-match">↔ Validates Band 3 (XML prompt compliance, routing paths)</div>
+                </div>
+
+                <div class="pyramid-card">
+                  <div class="pyramid-level">
+                    <span>PYRAMID L4 • 50-LAP GRAND PRIX</span>
+                    <span class="pyramid-cost">~30s • Full Audio</span>
+                  </div>
+                  <div class="pyramid-name">cxas evals report --modality audio --background-noise</div>
+                  <div class="pyramid-match">↔ Validates Band 1 (Acoustic wire, barge-in, 13 background noise presets)</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <span>90% of Voice Agent Bugs Caught at Pyramid L1 &amp; L2 in &lt;250ms with Zero Token Cost</span>
+          <span class="notes-prompt" onclick="toggleNotes()">🎙️ View Speaker Notes (Press N)</span>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 5 ==================== -->
+      <section class="slide" id="slide-4">
+        <div class="slide-top">
+          <div class="slide-meta">
+            <div class="slide-kicker">
+              <span>AGY Automation</span> • <span>Architecture &amp; Engineering Alignment</span>
+            </div>
+            <h1 class="slide-title">How Antigravity (AGY) Automates the Lifecycle &amp; Next Steps</h1>
+            <p class="slide-subtitle">
+              Automating manual CE/FDE toil with 7-Gate CI/CD skills and the 3 concrete architectural recommendations for engineering leadership.
+            </p>
+          </div>
+          <div class="slide-number-stamp">05</div>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-2col">
+            <!-- Left: AGY Automation Stack -->
+            <div class="card">
+              <div class="card-title">
+                <span>🤖</span> AGY 7-Gate Automated Lifecycle (<code>gecx</code> Skills)
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px; font-size: 11.5px; color: #cbd5e1;">
+                <div>
+                  <strong style="color: #60a5fa;">Gates 0–3 (Scaffolding):</strong> PRD Intake &rarr; TDD &rarr; Scaffolds all 4 Bands (<code>app.json</code>, <code>callbacks/</code>, <code>agents/</code>, <code>tools/</code>).
+                </div>
+                <div>
+                  <strong style="color: #34d399;">Gate 4 (Lint &amp; Auto-Fix):</strong> Runs <code>uv run cxas lint</code> (60+ rules) + <code>cxas llm-lint</code> via delegated <code>lint-fixer</code> subagent until <strong>0 errors / 0 warnings</strong>.
+                </div>
+                <div>
+                  <strong style="color: #fbbf24;">Gate 5 (Fast TDD Evals):</strong> Auto-generates and runs Pyramid L1–L3 <code>pytest</code> unit tests + frozen golden turn evals.
+                </div>
+                <div>
+                  <strong style="color: #f87171;">Gate 6 (Acoustic Evals &amp; Auditor):</strong> Pushes to GCP, runs 13-preset noisy audio simulations, and verifies pass criteria via separate <strong>Victory Auditor</strong>.
+                </div>
+                <div style="border-top: 1px solid var(--border); padding-top: 6px; margin-top: 2px;">
+                  <strong style="color: #e2e8f0;">Specialized Skills:</strong>
+                  <code>cxas-composite-voice-agent-optimizer</code> (Band 1 tuning),
+                  <code>cxas-dfcx-migration</code> (DFCX &rarr; 4-band compiler),
+                  <code>cxas-loss-analysis</code> (Insights loss clustering).
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Recommended Next Steps for Engineering Alignment -->
+            <div class="callout-box gold">
+              <div class="callout-title" style="color: #fef3c7;">
+                <span>🎯</span> Recommended Architectural Decisions for Engineering Alignment
+              </div>
+              <ul class="callout-list">
+                <li>
+                  <span style="color: #f59e0b; font-size: 14px;">1️⃣</span>
+                  <div>
+                    <strong>Standardize on the 4-Band ("TCP/IP over OSI") Visual:</strong>
+                    Replace flat checklists in Bootcamp Chapters 1, 4, and 6 (Lab 3) with the 4 horizontal macro-bands stacked from the wire up.
+                  </div>
+                </li>
+                <li>
+                  <span style="color: #f59e0b; font-size: 14px;">2️⃣</span>
+                  <div>
+                    <strong>Tag CLI Lint &amp; Eval Diagnostics by Band / OSI Layer:</strong>
+                    Update <code>cxas lint</code> and <code>cxas evals report</code> to emit layer tags (e.g., <code>[Band 1 / OSI L1 - Wire]</code>, <code>[Band 4 / OSI L6b - DTO]</code>) so developers immediately spot broken layers.
+                  </div>
+                </li>
+                <li>
+                  <span style="color: #f59e0b; font-size: 14px;">3️⃣</span>
+                  <div>
+                    <strong>Ship the Interactive Lab 3 Visualizer:</strong>
+                    Package <code>lab3_agentic_waf_visualizer.html</code> in the Partner Bootcamp repository alongside <code>chaos_workshop_runner.py</code> for interactive hands-on training.
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <span>Antigravity (AGY) Autonomous Software Engineering • Ready for Engineering Alignment</span>
+          <span class="notes-prompt" onclick="toggleNotes()">🎙️ View Speaker Notes (Press N)</span>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Speaker Notes Drawer (Architectural Context & Talking Points) -->
+  <aside class="notes-drawer" id="notesDrawer">
+    <div class="drawer-header">
+      <div class="drawer-title">
+        <span>🎙️</span>
+        <span>Speaker Notes (Architectural Rationale &amp; Talking Points)</span>
+      </div>
+      <button class="drawer-close" onclick="toggleNotes()" title="Close notes (N)">✕</button>
+    </div>
+
+    <div class="drawer-body">
+      <div class="drawer-target-slide" id="notesSlideNumber">Slide 1 of 5</div>
+      <h3 style="font-size: 15px; color: #ffffff;" id="notesSlideTitle">Why We Are Doing This Whole Thing</h3>
+
+      <div class="notes-quote" id="notesContent">
+        "The foundational premise for engineering is that we should stop presenting GECX patterns as disconnected best practices. Everything we do—Composite speech-to-speech, &lt;5ms Python callbacks instead of slow LLM supervisors, spoken tool fillers, and 5-second tool timeouts—starts at Layer 1: protecting the 1,200ms human ear ceiling on the physical phone wire."
+      </div>
+
+      <div style="font-size: 12px; color: #94a3b8; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px;">
+        <strong style="color: #cbd5e1;">💡 Key Architecture Talking Tip:</strong>
+        <p id="notesTalkingTip">
+          Emphasize the physical wire first. When engineering teams hear 'physics of the wire' and '1,200ms human threshold', they immediately understand why we don't put LLM guardrails in the audio loop.
+        </p>
+      </div>
+    </div>
+
+    <div class="drawer-footer">
+      <span>Use <kbd>N</kbd> or button to toggle notes anytime.</span>
+      <button class="btn" style="padding: 3px 8px; font-size: 11px;" onclick="copyNotes()">📋 Copy Notes</button>
+    </div>
+  </aside>
+
+  <script>
+    // Slide Data & Speaker Notes for Architectural Context
+    const slidesData = [
+      {
+        num: 1,
+        title: "Why We Are Doing This Whole Thing — The <1,200ms Physical Voice Wire",
+        quote: "The foundational premise for engineering is that we should stop presenting GECX patterns as disconnected best practices. Everything we do—Composite speech-to-speech, <5ms Python callbacks instead of slow LLM supervisors, spoken tool fillers, and 5-second tool timeouts—starts at Layer 1: protecting the 1,200ms human ear ceiling on the physical phone wire.",
+        tip: "Emphasize the physical wire first. When engineering teams hear 'physics of the wire' and '1,200ms human threshold', they immediately understand why we don't put LLM guardrails in the audio loop."
+      },
+      {
+        num: 2,
+        title: "The Mental Model — 'TCP/IP over OSI' for Voice Agents (4 Macro-Bands × L1–L7)",
+        quote: "When designing the mental model, we unified the high-level builder view with forensic diagnostics into a TCP/IP-over-OSI hybrid: visually it provides 4 clean bands that match the 4 directories of a cxas_app (app.json, callbacks/, agents/, tools/), while giving teams the L1–L7 OSI numbers so anyone can say 'that's a Layer 4 Transport timeout' or 'that's a Layer 6 DTO leak'.",
+        tip: "Highlight how the 4 bands mirror the actual codebase directory structure. This bridges high-level architecture with hands-on code navigation."
+      },
+      {
+        num: 3,
+        title: "Lab 3 Chaos Workshop Mapped to the 4 Macro-Bands & Agentic WAF",
+        quote: "This table is the Rosetta Stone for Lab 3. Every single chaos branch and static linter rule maps to one of the 4 bands, one OSI layer, and one Google Cloud Agentic WAF pillar.",
+        tip: "Walk through Branch 1 (the 35s hang vs 30s harpoon) and Branch 0 (the unauthenticated balance leak). They make the reliability and security stakes instantly real."
+      },
+      {
+        num: 4,
+        title: "1-to-1 Alignment with the 4-Layer F1 Testing Pyramid",
+        quote: "Notice how the 4 architectural bands mirror the 4 layers of our F1 Testing Pyramid. You don't need a 30-second audio simulation to find a missing null check or broken callback—Pyramid Layers 1 and 2 catch Band 4 and Band 2 bugs in 200 milliseconds for zero tokens.",
+        tip: "Frame this as engineering economics and velocity: running audio tests for deterministic logic is like taking a Formula 1 car onto the track just to test the spark plugs."
+      },
+      {
+        num: 5,
+        title: "How Antigravity (AGY) + gecx Skills Automate the Lifecycle & Next Steps",
+        quote: "In the gecx repo, AGY already runs all 7 gates automatically—PRD intake, TDD scaffolding, 60+ lint checks with automated subagent fixes, and noisy audio simulation audits. The three architectural proposals are straightforward: adopt the 4-band visual, tag lint diagnostics by layer, and ship the Lab 3 visualizer.",
+        tip: "Deliver the 3 recommendations crisply. They are actionable, non-controversial improvements that raise delivery velocity across all Partner Bootcamps."
+      }
+    ];
+
+    let currentSlide = 0;
+    const totalSlides = slidesData.length;
+
+    function updateSlide() {
+      // Toggle active class on slide elements
+      for (let i = 0; i < totalSlides; i++) {
+        const el = document.getElementById(`slide-${i}`);
+        if (el) {
+          el.classList.toggle('active', i === currentSlide);
+        }
+      }
+
+      // Update dots
+      const dots = document.querySelectorAll('.slide-dots .dot');
+      dots.forEach((dot, idx) => {
+        dot.classList.toggle('active', idx === currentSlide);
+      });
+
+      // Update counter
+      document.getElementById('slideCounter').textContent = `${currentSlide + 1} / ${totalSlides}`;
+
+      // Update speaker notes
+      const data = slidesData[currentSlide];
+      document.getElementById('notesSlideNumber').textContent = `Slide ${data.num} of ${totalSlides}`;
+      document.getElementById('notesSlideTitle').textContent = data.title;
+      document.getElementById('notesContent').textContent = data.quote;
+      document.getElementById('notesTalkingTip').textContent = data.tip;
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides - 1) {
+        currentSlide++;
+        updateSlide();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 0) {
+        currentSlide--;
+        updateSlide();
+      }
+    }
+
+    function goToSlide(idx) {
+      if (idx >= 0 && idx < totalSlides) {
+        currentSlide = idx;
+        updateSlide();
+      }
+    }
+
+    function toggleNotes() {
+      const drawer = document.getElementById('notesDrawer');
+      const btn = document.getElementById('notesToggleBtn');
+      drawer.classList.toggle('open');
+      btn.classList.toggle('active');
+    }
+
+    function printDeck() {
+      window.print();
+    }
+
+    function copyNotes() {
+      const text = document.getElementById('notesContent').textContent;
+      navigator.clipboard.writeText(text.trim()).then(() => {
+        const btn = document.querySelector('.drawer-footer button');
+        const orig = btn.innerHTML;
+        btn.innerHTML = "✅ Copied!";
+        setTimeout(() => btn.innerHTML = orig, 1800);
+      });
+    }
+
+    // Keyboard Navigation
+    window.addEventListener('keydown', (e) => {
+      // Don't intercept if focus is inside an input
+      if (['input', 'textarea'].includes(document.activeElement.tagName.toLowerCase())) return;
+
+      switch(e.key) {
+        case 'ArrowRight':
+        case ' ': // Space
+        case 'PageDown':
+          e.preventDefault();
+          nextSlide();
+          break;
+        case 'ArrowLeft':
+        case 'Backspace':
+        case 'PageUp':
+          e.preventDefault();
+          prevSlide();
+          break;
+        case 'Home':
+          e.preventDefault();
+          goToSlide(0);
+          break;
+        case 'End':
+          e.preventDefault();
+          goToSlide(totalSlides - 1);
+          break;
+        case 'n':
+        case 'N':
+          e.preventDefault();
+          toggleNotes();
+          break;
+        case 'p':
+        case 'P':
+          if (e.metaKey || e.ctrlKey) {
+            // standard print
+          } else {
+            e.preventDefault();
+            printDeck();
+          }
+          break;
+        case 'f':
+        case 'F':
+          e.preventDefault();
+          if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(() => {});
+          } else {
+            document.exitFullscreen().catch(() => {});
+          }
+          break;
+      }
+    });
+
+    // Initialize
+    updateSlide();
+  </script>
+</body>
+</html>
