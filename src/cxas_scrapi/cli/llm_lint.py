@@ -17,13 +17,121 @@ import argparse
 import ast
 import json
 import os
+import re
 import sys
 from pathlib import Path
+from typing import Any
 
 import yaml
 
 from cxas_scrapi.prompts import LLM_LINT_SYSTEM_PROMPT, LLM_LINT_USER_PROMPT
 from cxas_scrapi.utils.gemini import GeminiGenerate
+from cxas_scrapi.utils.waf_layers import resolve_llm_lint_layer
+
+_HEADING_RE = re.compile(r"^(#{1,6}\s+)(.+?)\s*$")
+_BOLD_BULLET_RE = re.compile(
+    r"^(\s*(?:[-*+]|\d+\.)\s+\*\*([^*]+)\*\*\s*:?)(.*)$"
+)
+
+
+def annotate_llm_lint_report(report_md: str) -> str:
+    """Enrich markdown section headers and bold findings with WAF/OSI tags."""
+    if not report_md:
+        return report_md
+
+    annotated_lines: list[str] = []
+    in_code_fence = False
+
+    for line in report_md.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("```"):
+            in_code_fence = not in_code_fence
+            annotated_lines.append(line)
+            continue
+
+        if in_code_fence or "[Band " in line:
+            annotated_lines.append(line)
+            continue
+
+        heading_match = _HEADING_RE.match(line)
+        if heading_match:
+            prefix, heading_text = heading_match.groups()
+            clean_heading = (
+                re.sub(r"^[\d.\s]+|[:\s]+$", "", heading_text).strip().lower()
+            )
+            if clean_heading and clean_heading != "summary":
+                tag = resolve_llm_lint_layer(heading_text).format_tag()
+                annotated_lines.append(f"{prefix}{heading_text} {tag}")
+            else:
+                annotated_lines.append(line)
+            continue
+
+        bullet_match = _BOLD_BULLET_RE.match(line)
+        if bullet_match:
+            prefix_part, label, rest = bullet_match.groups()
+            tag = resolve_llm_lint_layer(label).format_tag()
+            annotated_lines.append(f"{prefix_part} {tag}{rest}")
+            continue
+
+        annotated_lines.append(line)
+
+    result = "\n".join(annotated_lines)
+    if report_md.endswith("\n"):
+        result += "\n"
+    return result
+
+
+def extract_llm_lint_findings(
+    report_md: str, default_category: str = "instructions"
+) -> list[dict[str, Any]]:
+    """Extract structured findings with LayerMetadata from an llm-lint report."""
+    findings: list[dict[str, Any]] = []
+    current_section = ""
+    in_code_fence = False
+
+    for line in (report_md or "").splitlines():
+        stripped = line.strip()
+        if stripped.startswith("```"):
+            in_code_fence = not in_code_fence
+            continue
+        if in_code_fence:
+            continue
+
+        heading_match = _HEADING_RE.match(line)
+        if heading_match:
+            _, heading_text = heading_match.groups()
+            clean_heading = re.sub(
+                r"^[\d.\s]+|[:\s]+$", "", heading_text
+            ).strip()
+            current_section = clean_heading
+            continue
+
+        bullet_match = _BOLD_BULLET_RE.match(line)
+        if bullet_match:
+            _, label, rest = bullet_match.groups()
+            clean_label = label.strip()
+            meta = resolve_llm_lint_layer(clean_label)
+            entry: dict[str, Any] = {
+                "category": clean_label,
+                "section": current_section,
+                "detail": rest.strip(),
+                "tag": meta.format_tag(),
+            }
+            entry.update(meta.to_dict())
+            findings.append(entry)
+
+    if not findings and report_md and report_md.strip():
+        meta = resolve_llm_lint_layer(default_category)
+        fallback: dict[str, Any] = {
+            "category": default_category,
+            "section": current_section or "Report",
+            "detail": report_md.strip(),
+            "tag": meta.format_tag(),
+        }
+        fallback.update(meta.to_dict())
+        findings.append(fallback)
+
+    return findings
 
 
 def discover_agent_callbacks(agent_dir: Path) -> list[tuple[str, Path]]:
@@ -362,19 +470,40 @@ def llm_lint(args: argparse.Namespace) -> None:
             break
         current_dir = current_dir.parent
 
-    print("------------------------------------------------------------")
-    print(f"LLM LINTER — Starting analysis for agent: {agent_path.name}")
-    print("------------------------------------------------------------")
+    json_output = getattr(args, "json_output", False)
+    log_stream = sys.stderr if json_output else sys.stdout
+    base_layer = resolve_llm_lint_layer("instructions")
+
+    print(
+        "------------------------------------------------------------",
+        file=log_stream,
+    )
+    print(
+        f"LLM LINTER — Starting analysis for agent: {agent_path.name}",
+        file=log_stream,
+    )
+    print(
+        "------------------------------------------------------------",
+        file=log_stream,
+    )
 
     # Resolve Credentials
     project_id, location = resolve_gcp_credentials(
         agent_path, args.project_id, args.location
     )
-    print(f"GCP Project : {project_id}")
-    print(f"GCP Location: {location}")
-    print(f"Gemini Model: {args.model}")
+    print(f"GCP Project : {project_id}", file=log_stream)
+    print(f"GCP Location: {location}", file=log_stream)
+    print(f"Gemini Model: {args.model}", file=log_stream)
+    print(
+        f"Layer Tag   : {base_layer.format_tag()} "
+        f"({base_layer.macro_band_name})",
+        file=log_stream,
+    )
     if global_instruction_file:
-        print(f"Global Inst : {global_instruction_file.resolve()}")
+        print(
+            f"Global Inst : {global_instruction_file.resolve()}",
+            file=log_stream,
+        )
 
     # Load instruction content
     try:
@@ -403,7 +532,7 @@ def llm_lint(args: argparse.Namespace) -> None:
             )
 
     # Initialize Gemini
-    print("Initializing Gemini Client...")
+    print("Initializing Gemini Client...", file=log_stream)
     gemini_client = GeminiGenerate(
         project_id=project_id,
         location=location,
@@ -414,7 +543,8 @@ def llm_lint(args: argparse.Namespace) -> None:
     if callbacks:
         print(
             f"Found {len(callbacks)} dynamic instruction "
-            "callback(s) to analyze."
+            "callback(s) to analyze.",
+            file=log_stream,
         )
 
     # --- Run Base Lint ---
@@ -430,7 +560,8 @@ def llm_lint(args: argparse.Namespace) -> None:
 
     print(
         "Running semantic review for base instructions using Gemini "
-        "(this may take a few seconds)..."
+        "(this may take a few seconds)...",
+        file=log_stream,
     )
     report = gemini_client.generate(
         prompt=user_prompt,
@@ -441,10 +572,13 @@ def llm_lint(args: argparse.Namespace) -> None:
         print("Error: Failed to generate report from Gemini.", file=sys.stderr)
         sys.exit(1)
 
-    print("\n============================================================")
-    print("LINT REPORT GENERATED (Base)")
-    print("============================================================\n")
-    print(report)
+    annotated_report = annotate_llm_lint_report(report)
+
+    if not json_output:
+        print("\n============================================================")
+        print(f"LINT REPORT GENERATED (Base) {base_layer.format_tag()}")
+        print("============================================================\n")
+        print(annotated_report)
 
     # Determine base output path
     if args.output:
@@ -455,18 +589,34 @@ def llm_lint(args: argparse.Namespace) -> None:
     try:
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(report)
-        print("\n------------------------------------------------------------")
-        print(f"Successfully saved base report to: {output_path}")
-        print("------------------------------------------------------------")
+        print(
+            "\n------------------------------------------------------------",
+            file=log_stream,
+        )
+        print(
+            f"Successfully saved base report to: {output_path}",
+            file=log_stream,
+        )
+        print(
+            "------------------------------------------------------------",
+            file=log_stream,
+        )
     except OSError as e:
         print(
             f"Warning: Failed to save base report file to {output_path}: {e}",
             file=sys.stderr,
         )
 
+    callback_json_reports: list[dict[str, Any]] = []
+
     # --- Run Callback Lints ---
     for cb_display, cb_path in callbacks:
-        print(f"\nAnalyzing dynamic instruction callback: {cb_display}...")
+        cb_layer = resolve_llm_lint_layer(cb_display)
+        print(
+            f"\nAnalyzing dynamic instruction callback: {cb_display} "
+            f"{cb_layer.format_tag()}...",
+            file=log_stream,
+        )
 
         # Attempt to extract state -> instruction dictionary mapping
         dynamic_dis = extract_dynamic_instructions(cb_path)
@@ -486,10 +636,15 @@ def llm_lint(args: argparse.Namespace) -> None:
 
             print(
                 f"Found {len(dynamic_dis)} dynamic state "
-                "instruction(s) inside callback."
+                "instruction(s) inside callback.",
+                file=log_stream,
             )
             for state_name, state_instruction in sorted(dynamic_dis.items()):
-                print(f"  - Linting state: {state_name}...")
+                print(
+                    f"  - Linting state: {state_name} "
+                    f"{cb_layer.format_tag()}...",
+                    file=log_stream,
+                )
 
                 user_prompt = (
                     LLM_LINT_USER_PROMPT.format(
@@ -530,7 +685,8 @@ def llm_lint(args: argparse.Namespace) -> None:
                             f.write(cb_report)
                         print(
                             "    Successfully saved state report to: "
-                            f"{cb_output_path}"
+                            f"{cb_output_path}",
+                            file=log_stream,
                         )
                     except OSError as e:
                         print(
@@ -538,9 +694,35 @@ def llm_lint(args: argparse.Namespace) -> None:
                             f"{cb_output_path}: {e}",
                             file=sys.stderr,
                         )
+
+                    cb_entry: dict[str, Any] = {
+                        "callback": cb_display,
+                        "state": state_name,
+                        "tag": cb_layer.format_tag(),
+                        "report": cb_report,
+                        "annotated_report": annotate_llm_lint_report(cb_report),
+                        "findings": extract_llm_lint_findings(
+                            cb_report, cb_display
+                        ),
+                    }
+                    cb_entry.update(cb_layer.to_dict())
+                    callback_json_reports.append(cb_entry)
                 else:
                     print(
                         "    Error: Failed to generate report from Gemini "
                         f"for state: {state_name}",
                         file=sys.stderr,
                     )
+
+    if json_output:
+        base_meta: dict[str, Any] = {"tag": base_layer.format_tag()}
+        base_meta.update(base_layer.to_dict())
+        payload: dict[str, Any] = {
+            "agent": agent_path.name,
+            "layer": base_meta,
+            "report": report,
+            "annotated_report": annotated_report,
+            "findings": extract_llm_lint_findings(report, "instructions"),
+            "callbacks": callback_json_reports,
+        }
+        print(json.dumps(payload, indent=2))

@@ -16,8 +16,10 @@
 """Utility functions for generating reports."""
 
 import contextlib
+import csv
 import datetime
 import glob
+import io
 import json
 import math
 import os
@@ -52,6 +54,7 @@ from cxas_scrapi.utils.tracing import (
     audio_metrics,
     audio_transcription,
 )
+from cxas_scrapi.utils.waf_layers import MACRO_BANDS, classify_eval_layer
 
 _ORIG_OPEN = open
 
@@ -653,6 +656,7 @@ def _get_combined_template_module(
         "suite_pl": None,
         "suite_audio": None,
         "suite_audio_html": "",
+        "band_health": [],
         "_fmt_duration": lambda s: f"{s:.1f}s",
         "_fmt_ms": _fmt_ms,
         "_pl_status_cls": _pl_status_cls,
@@ -4076,6 +4080,411 @@ def generate_html_report(
     print(f"Report saved locally to: {output_path}")
 
 
+def _clean_str(val: Any) -> str:
+    """Convert value to string, treating None and float NaN as empty string."""
+    if val is None:
+        return ""
+    if isinstance(val, float) and math.isnan(val):
+        return ""
+    return str(val).strip()
+
+
+def _coerce_latency_ms(val: Any) -> float | None:
+    """Safely convert numeric latency value to float milliseconds."""
+    if val is None or isinstance(val, bool):
+        return None
+    if isinstance(val, (int, float)):
+        f_val = float(val)
+        return None if math.isnan(f_val) else f_val
+    return None
+
+
+def _extract_eval_failure_signals(
+    item: Mapping[str, Any], eval_type: str
+) -> tuple[str, float | None, bool]:
+    """Extract pure-data failure reason, latency_ms, and dead-air flag."""
+    passed = bool(item.get("passed", False))
+    conv_pl = (
+        item.get("_conv_latency")
+        if isinstance(item.get("_conv_latency"), Mapping)
+        else None
+    )
+
+    latency_ms = _coerce_latency_ms(item.get("perceived_latency_ms"))
+    if latency_ms is None:
+        latency_ms = _coerce_latency_ms(item.get("latency_ms"))
+    if latency_ms is None:
+        latency_ms = _coerce_latency_ms(item.get("pl_p50_ms"))
+    if latency_ms is None and not passed and conv_pl is not None:
+        latency_ms = _coerce_latency_ms(conv_pl.get("p90_ms"))
+        if latency_ms is None:
+            latency_ms = _coerce_latency_ms(conv_pl.get("p50_ms"))
+
+    has_dead_air = bool(item.get("has_dead_air") or item.get("dead_air"))
+    if not has_dead_air and not passed:
+        issue_keys = item.get("issue_keys")
+        if (
+            isinstance(issue_keys, Sequence)
+            and not isinstance(issue_keys, (str, bytes))
+            and any(k in {"long_pauses", "dead_air"} for k in issue_keys)
+        ):
+            has_dead_air = True
+        if not has_dead_air and conv_pl is not None:
+            for turn_pl in conv_pl.get("turns", []) or []:
+                if (
+                    isinstance(turn_pl, Mapping)
+                    and (_coerce_latency_ms(turn_pl.get("pl_ms")) or 0.0)
+                    > 2000.0
+                    and not turn_pl.get("filler_masked")
+                    and turn_pl.get("tools_data")
+                ):
+                    has_dead_air = True
+                    break
+
+    if passed:
+        return "", latency_ms, has_dead_air
+
+    reasons: list[str] = []
+    for key in ("failure_reason", "error", "errors", "error_message"):
+        txt = _clean_str(item.get(key))
+        if txt:
+            reasons.append(txt)
+
+    etype = eval_type.strip().lower()
+    if etype == "golden":
+        for turn in item.get("turns", []) or []:
+            if not isinstance(turn, Mapping):
+                continue
+            for comp in turn.get("comparisons", []) or []:
+                if not isinstance(comp, Mapping):
+                    continue
+                if comp.get("outcome") == "FAIL":
+                    ctype = _clean_str(comp.get("type"))
+                    exp_v = _clean_str(comp.get("expected"))
+                    act_v = _clean_str(comp.get("actual"))
+                    if ctype == "transfer":
+                        reasons.append(
+                            f"transfer routing failed: expected {exp_v}, "
+                            f"got {act_v}"
+                        )
+                    elif ctype == "tool_call":
+                        expl = _clean_str(
+                            comp.get("tool_invocation_explanation")
+                        )
+                        reasons.append(
+                            f"tool_call failed: expected {exp_v}, "
+                            f"got {act_v} {expl}".strip()
+                        )
+                    elif ctype == "text":
+                        sem_expl = _clean_str(turn.get("semantic_explanation"))
+                        reasons.append(
+                            f"text semantic mismatch {sem_expl}".strip()
+                        )
+                    else:
+                        reasons.append(
+                            f"{ctype} failed: expected {exp_v}, got {act_v}"
+                        )
+            sem = turn.get("semantic_score")
+            if isinstance(sem, (int, float)) and sem < 3:
+                sem_expl = _clean_str(turn.get("semantic_explanation"))
+                reasons.append(f"semantic_score {sem}/4 {sem_expl}".strip())
+        for exp in item.get("expectations", []) or []:
+            if isinstance(exp, Mapping) and exp.get("status") != "Met":
+                e_txt = _clean_str(exp.get("expectation"))
+                j_txt = _clean_str(exp.get("justification"))
+                reasons.append(f"{e_txt} {j_txt}".strip())
+
+    elif etype in {"sim", "simulation"}:
+        for step in item.get("step_details", []) or []:
+            if isinstance(step, Mapping) and step.get("status") != "Completed":
+                g_txt = _clean_str(step.get("goal"))
+                j_txt = _clean_str(step.get("justification"))
+                reasons.append(f"Goal not completed: {g_txt} {j_txt}".strip())
+        for exp_list_key in ("expectation_details", "expectations"):
+            exp_seq = item.get(exp_list_key)
+            if isinstance(exp_seq, Sequence) and not isinstance(
+                exp_seq, (str, bytes)
+            ):
+                for exp in exp_seq:
+                    if isinstance(exp, Mapping) and exp.get("status") != "Met":
+                        e_txt = _clean_str(exp.get("expectation"))
+                        j_txt = _clean_str(exp.get("justification"))
+                        reasons.append(f"{e_txt} {j_txt}".strip())
+        nat = item.get("naturalness_details")
+        if isinstance(nat, Mapping) and (
+            nat.get("passed") is False or nat.get("failure_reasons")
+        ):
+            nat_reasons = "; ".join(
+                _clean_str(r_txt)
+                for r_txt in (nat.get("failure_reasons") or [])
+                if _clean_str(r_txt)
+            )
+            reasons.append(f"naturalness {nat_reasons}".strip())
+        audio_chk = item.get("audio_checks")
+        if isinstance(audio_chk, Mapping) and any(
+            v is False for v in audio_chk.values()
+        ):
+            reasons.append("audio check failed")
+
+    failure_reason = "; ".join(r_part for r_part in reasons if r_part)
+    return failure_reason, latency_ms, has_dead_air
+
+
+def build_eval_waf_layer(
+    item: Mapping[str, Any],
+    eval_type: str,
+    modality: str = "text",
+) -> dict[str, Any]:
+    """Classify an evaluation item into a pure-data WAF/OSI layer dict."""
+    resolved_modality = _clean_str(item.get("modality")) or modality or "text"
+    failure_reason, latency_ms, has_dead_air = _extract_eval_failure_signals(
+        item, eval_type
+    )
+    layer = classify_eval_layer(
+        eval_type,
+        failure_reason=failure_reason,
+        modality=resolved_modality,
+        latency_ms=latency_ms,
+        has_dead_air=has_dead_air,
+    )
+    return {
+        **layer.to_dict(),
+        "short_badge": layer.format_short_badge(),
+        "full_tag": layer.format_tag(),
+    }
+
+
+def enrich_eval_results_waf_layers(
+    *,
+    golden_results: list[dict[str, Any]] | None = None,
+    sim_results: list[dict[str, Any]] | None = None,
+    tool_results: list[dict[str, Any]] | None = None,
+    callback_results: list[dict[str, Any]] | None = None,
+    golden_modality: str = "text",
+    sim_modality: str = "text",
+) -> None:
+    """Enrich evaluation dicts in-place with waf_layer and flat WAF fields."""
+    groups: tuple[tuple[list[dict[str, Any]] | None, str, str], ...] = (
+        (golden_results, "golden", golden_modality),
+        (sim_results, "sim", sim_modality),
+        (tool_results, "tool", "text"),
+        (callback_results, "callback", "text"),
+    )
+    for items, etype, mod in groups:
+        if not items:
+            continue
+        for r in items:
+            if not isinstance(r, dict):
+                continue
+            layer_dict = build_eval_waf_layer(r, etype, modality=mod)
+            r["waf_layer"] = layer_dict
+            r["macro_band"] = layer_dict["macro_band"]
+            r["osi_layer"] = layer_dict["osi_layer"]
+            r["waf_pillar"] = layer_dict["waf_pillar"]
+
+
+def compute_band_health(
+    golden_results: Sequence[Mapping[str, Any]] | None = None,
+    sim_results: Sequence[Mapping[str, Any]] | None = None,
+    tool_results: Sequence[Mapping[str, Any]] | None = None,
+    callback_results: Sequence[Mapping[str, Any]] | None = None,
+    *,
+    golden_modality: str = "text",
+    sim_modality: str = "text",
+    suite_pl: Mapping[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    """Compute pure-data 4-Band Voice & Agentic Architecture Health summary."""
+    buckets: dict[int, list[bool]] = {1: [], 2: [], 3: [], 4: []}
+    groups: tuple[tuple[Sequence[Mapping[str, Any]] | None, str, str], ...] = (
+        (golden_results, "golden", golden_modality),
+        (sim_results, "sim", sim_modality),
+        (tool_results, "tool", "text"),
+        (callback_results, "callback", "text"),
+    )
+    for items, etype, mod in groups:
+        if not items:
+            continue
+        for r in items:
+            if not isinstance(r, Mapping):
+                continue
+            existing = r.get("waf_layer")
+            layer_dict = (
+                existing
+                if isinstance(existing, Mapping) and "macro_band" in existing
+                else build_eval_waf_layer(r, etype, modality=mod)
+            )
+            band_id = int(layer_dict["macro_band"])
+            if band_id in buckets:
+                buckets[band_id].append(bool(r.get("passed", False)))
+
+    # Fallback to latency/dead-air telemetry for Band 1 when no Band-1 evals ran
+    if not buckets[1] and isinstance(suite_pl, Mapping):
+        filler_table = suite_pl.get("filler_table")
+        if isinstance(filler_table, Sequence) and filler_table:
+            for frow in filler_table:
+                if isinstance(frow, Mapping):
+                    buckets[1].append(
+                        int(frow.get("unmasked_calls", 0) or 0) == 0
+                    )
+        elif isinstance(suite_pl.get("primary"), Mapping):
+            prim = suite_pl["primary"]
+            n_turns = int(
+                prim.get("spoken_count")
+                or prim.get("total_turns")
+                or suite_pl.get("total_turns")
+                or 0
+            )
+            if n_turns > 0:
+                over_2s_pct = float(prim.get("over_2s_pct", 0.0) or 0.0)
+                n_pass = max(
+                    0,
+                    min(
+                        n_turns,
+                        round(n_turns * (100.0 - over_2s_pct) / 100.0),
+                    ),
+                )
+                buckets[1].extend(
+                    [True] * n_pass + [False] * (n_turns - n_pass)
+                )
+
+    has_sims = bool(sim_results)
+    has_latency = bool(
+        isinstance(suite_pl, Mapping) and suite_pl.get("primary")
+    )
+    has_goldens = bool(golden_results)
+    has_tools = bool(tool_results)
+    has_callbacks = bool(callback_results)
+    has_unit = has_tools or has_callbacks
+
+    band_health: list[dict[str, Any]] = []
+    for band_num in (1, 2, 3, 4):
+        meta = MACRO_BANDS[band_num]
+        outcomes = buckets[band_num]
+        b_total = len(outcomes)
+        b_passed = sum(1 for ok in outcomes if ok)
+        b_failed = b_total - b_passed
+        pass_rate = (
+            round(100.0 * b_passed / b_total, 1) if b_total > 0 else None
+        )
+        if b_total == 0:
+            status_cls = "na"
+        elif b_passed == b_total:
+            status_cls = "pass"
+        elif pass_rate is not None and pass_rate >= 50.0:
+            status_cls = "warn"
+        else:
+            status_cls = "fail"
+
+        if band_num == 1:
+            if has_sims:
+                target_tab, target_section = "sims", "section-sims"
+            elif has_latency:
+                target_tab, target_section = "latency", "section-latency"
+            elif has_goldens and golden_modality == "audio":
+                target_tab, target_section = "goldens", "section-goldens"
+            else:
+                target_tab, target_section = "overview", ""
+        elif band_num == 2:
+            if has_callbacks:
+                target_tab, target_section = "unit", "section-callbacks"
+            elif has_unit:
+                target_tab, target_section = "unit", "section-tools"
+            else:
+                target_tab, target_section = "overview", ""
+        elif band_num == 3:
+            if has_goldens:
+                target_tab, target_section = "goldens", "section-goldens"
+            elif has_sims:
+                target_tab, target_section = "sims", "section-sims"
+            else:
+                target_tab, target_section = "overview", ""
+        elif has_tools:
+            target_tab, target_section = "unit", "section-tools"
+        elif has_unit:
+            target_tab, target_section = "unit", "section-callbacks"
+        else:
+            target_tab, target_section = "overview", ""
+
+        band_health.append(
+            {
+                "band": band_num,
+                "macro_band": band_num,
+                "name": str(meta["name"]),
+                "short_name": str(meta["short_name"]),
+                "osi_layers": str(meta["osi_layers"]),
+                "artifact_scope": str(meta["artifact_scope"]),
+                "pyramid_layer": str(meta["pyramid_layer"]),
+                "pass": b_passed,
+                "passed": b_passed,
+                "total": b_total,
+                "failed_count": b_failed,
+                "pass_rate": pass_rate,
+                "status_cls": status_cls,
+                "target_tab": target_tab,
+                "target_section": target_section,
+            }
+        )
+    return band_health
+
+
+def build_combined_eval_rows(
+    golden_results: Sequence[Mapping[str, Any]] | None = None,
+    sim_results: Sequence[Mapping[str, Any]] | None = None,
+    tool_results: Sequence[Mapping[str, Any]] | None = None,
+    callback_results: Sequence[Mapping[str, Any]] | None = None,
+    *,
+    golden_modality: str = "text",
+    sim_modality: str = "text",
+) -> list[dict[str, Any]]:
+    """Build flat per-evaluation row dicts for CSV/JSON export."""
+    rows: list[dict[str, Any]] = []
+    groups: tuple[tuple[Sequence[Mapping[str, Any]] | None, str, str], ...] = (
+        (golden_results, "golden", golden_modality),
+        (sim_results, "sim", sim_modality),
+        (tool_results, "tool", "text"),
+        (callback_results, "callback", "text"),
+    )
+    for items, etype, mod in groups:
+        if not items:
+            continue
+        for r in items:
+            if not isinstance(r, Mapping):
+                continue
+            existing = r.get("waf_layer")
+            layer_dict = (
+                existing
+                if isinstance(existing, Mapping) and "macro_band" in existing
+                else build_eval_waf_layer(r, etype, modality=mod)
+            )
+            failure_reason, latency_ms, _ = _extract_eval_failure_signals(
+                r, etype
+            )
+            passed = bool(r.get("passed", False))
+            status = _clean_str(r.get("status")) or (
+                "PASSED" if passed else "FAILED"
+            )
+            resolved_mod = _clean_str(r.get("modality")) or mod
+            rows.append(
+                {
+                    "name": _clean_str(r.get("name", r.get("test_name", "?"))),
+                    "type": etype,
+                    "passed": passed,
+                    "status": status,
+                    "modality": resolved_mod,
+                    "run": r.get("run", 1),
+                    "duration_s": r.get("duration_s"),
+                    "latency_ms": latency_ms,
+                    "failure_reason": failure_reason,
+                    "macro_band": layer_dict["macro_band"],
+                    "macro_band_name": layer_dict["macro_band_name"],
+                    "osi_layer": layer_dict["osi_layer"],
+                    "waf_pillar": layer_dict["waf_pillar"],
+                    "waf_tag": layer_dict["full_tag"],
+                }
+            )
+    return rows
+
+
 def generate_combined_html_report(
     golden_results: list[dict[str, Any]] | None = None,
     sim_results: list[dict[str, Any]] | None = None,
@@ -4159,6 +4568,7 @@ def generate_combined_html_report(
                     if avg_sem is not None
                     else "",
                     "runs": 1,
+                    "_item": r,
                 }
             )
     if sim_results:
@@ -4211,6 +4621,7 @@ def generate_combined_html_report(
                         else ""
                     ),
                     "runs": 1,
+                    "_item": r,
                 }
             )
 
@@ -4224,6 +4635,7 @@ def generate_combined_html_report(
                     "score": r.get("status", "?"),
                     "detail": r.get("callback_type", ""),
                     "runs": 1,
+                    "_item": r,
                 }
             )
 
@@ -4396,6 +4808,52 @@ def generate_combined_html_report(
         sim_results=sim_results,
         audio_analysis=audio_analysis,
     )
+
+    # Enrich evaluation items with WAF / OSI layer metadata & 4-Band Health
+    enrich_eval_results_waf_layers(
+        golden_results=golden_results,
+        sim_results=sim_results,
+        tool_results=tool_results,
+        callback_results=callback_results,
+        golden_modality=golden_modality,
+        sim_modality=sim_modality,
+    )
+    for u in unified:
+        if u["type"] == "sim" and u.get("run_results"):
+            failed_run = next(
+                (rr for rr in u["run_results"] if not rr.get("passed")),
+                None,
+            )
+            src_run = failed_run or u["run_results"][0]
+            u["waf_layer"] = src_run.get("waf_layer")
+        elif isinstance(u.get("_item"), Mapping):
+            u["waf_layer"] = u["_item"].get("waf_layer")
+        u.pop("_item", None)
+
+    if isinstance(suite_audio, dict) and suite_audio.get("run_rows"):
+        for rrow in suite_audio["run_rows"]:
+            if isinstance(rrow, dict):
+                rrow_mod = _clean_str(rrow.get("modality")) or (
+                    golden_modality
+                    if rrow.get("eval_type") == "golden"
+                    else sim_modality
+                )
+                rrow["waf_layer"] = build_eval_waf_layer(
+                    rrow,
+                    str(rrow.get("eval_type", "sim")),
+                    modality=rrow_mod,
+                )
+
+    band_health = compute_band_health(
+        golden_results=golden_results,
+        sim_results=sim_results,
+        tool_results=tool_results,
+        callback_results=callback_results,
+        golden_modality=golden_modality,
+        sim_modality=sim_modality,
+        suite_pl=suite_pl,
+    )
+
     suite_audio_html = _render_suite_audio_analysis(suite_audio)
 
     # Process traces for simulation results to simplify template
@@ -4571,6 +5029,7 @@ def generate_combined_html_report(
         burst_noise_files=burst_noise_files,
         tool_results_html=tool_results_html,
         callback_results_html=callback_results_html,
+        band_health=band_health,
     )
 
     # Wrap compiled body dynamically in declarative BaseShell scaffold envelope.
@@ -4667,6 +5126,31 @@ def generate_combined_json_report(
         audio_analysis=audio_analysis,
     )
 
+    enrich_eval_results_waf_layers(
+        golden_results=golden_results,
+        sim_results=sim_results,
+        tool_results=tool_results,
+        callback_results=callback_results,
+        golden_modality=golden_modality,
+        sim_modality=sim_modality,
+    )
+    band_health = compute_band_health(
+        golden_results=golden_results,
+        sim_results=sim_results,
+        tool_results=tool_results,
+        callback_results=callback_results,
+        golden_modality=golden_modality,
+        sim_modality=sim_modality,
+    )
+    eval_rows = build_combined_eval_rows(
+        golden_results=golden_results,
+        sim_results=sim_results,
+        tool_results=tool_results,
+        callback_results=callback_results,
+        golden_modality=golden_modality,
+        sim_modality=sim_modality,
+    )
+
     report = {
         "schema_version": 1,
         "generated_at": datetime.datetime.now().isoformat(),
@@ -4682,6 +5166,7 @@ def generate_combined_json_report(
             "pass_rate_pct": round(100 * passed / total, 2) if total else 0,
             **per_type,
             "audio_analysis": suite_audio,
+            "band_health": band_health,
         },
         "results": {
             "golden": _sanitize_for_json(golden_results),
@@ -4689,6 +5174,7 @@ def generate_combined_json_report(
             "tool": _sanitize_for_json(tool_results),
             "callback": _sanitize_for_json(callback_results),
         },
+        "rows": eval_rows,
     }
     json_out = json.dumps(report, indent=2, default=str)
 
@@ -4710,6 +5196,91 @@ def generate_combined_json_report(
         else:
             with open(output_path, "w") as f:
                 f.write(json_out)
+
+    return output_path
+
+
+_COMBINED_CSV_COLUMNS: tuple[str, ...] = (
+    "name",
+    "type",
+    "passed",
+    "status",
+    "modality",
+    "run",
+    "duration_s",
+    "latency_ms",
+    "failure_reason",
+    "macro_band",
+    "macro_band_name",
+    "osi_layer",
+    "waf_pillar",
+    "waf_tag",
+)
+
+
+def generate_combined_csv_report(
+    golden_results: list[dict[str, Any]] | None = None,
+    sim_results: list[dict[str, Any]] | None = None,
+    tool_results: list[dict[str, Any]] | None = None,
+    callback_results: list[dict[str, Any]] | None = None,
+    output_path: str = "",
+    app_name: str = "",
+    golden_modality: str = "text",
+    sim_modality: str = "text",
+) -> str:
+    """Generate a combined CSV report with WAF/OSI layer columns."""
+    del app_name
+    golden_results = golden_results or []
+    sim_results = sim_results or []
+    tool_results = tool_results or []
+    callback_results = callback_results or []
+
+    enrich_eval_results_waf_layers(
+        golden_results=golden_results,
+        sim_results=sim_results,
+        tool_results=tool_results,
+        callback_results=callback_results,
+        golden_modality=golden_modality,
+        sim_modality=sim_modality,
+    )
+    rows = build_combined_eval_rows(
+        golden_results=golden_results,
+        sim_results=sim_results,
+        tool_results=tool_results,
+        callback_results=callback_results,
+        golden_modality=golden_modality,
+        sim_modality=sim_modality,
+    )
+
+    buf = io.StringIO()
+    writer = csv.DictWriter(
+        buf,
+        fieldnames=list(_COMBINED_CSV_COLUMNS),
+        lineterminator="\n",
+        extrasaction="ignore",
+    )
+    writer.writeheader()
+    for row in rows:
+        writer.writerow(row)
+    csv_out = buf.getvalue()
+
+    if output_path:
+        if output_path.startswith("gs://"):
+            mtls_url = _upload_to_gcs(
+                output_path, csv_out, content_type="text/csv; charset=utf-8"
+            )
+            if not mtls_url:
+                filename = output_path.rsplit("/", maxsplit=1)[-1]
+                if not filename.endswith(".csv"):
+                    filename = "report_fallback.csv"
+                output_path = filename
+                with open(output_path, "w", encoding="utf-8") as f:
+                    f.write(csv_out)
+            else:
+                output_path = mtls_url
+        else:
+            with open(output_path, "w", encoding="utf-8") as f:
+                f.write(csv_out)
 
     return output_path
 
@@ -5488,6 +6059,11 @@ def summarize_and_gate_evals(
                         exp_name = exp.get("expectation", "")
                         if exp_name and exp_name not in failed_expectations:
                             failed_expectations.append(exp_name)
+            src_run = next(
+                (r for r in runs if not r.get("passed")),
+                runs[0],
+            )
+            case_layer = build_eval_waf_layer(src_run, category)
             all_cases.append(
                 {
                     "name": name,
@@ -5496,6 +6072,10 @@ def summarize_and_gate_evals(
                     "passes": passes,
                     "runs": total_runs,
                     "failed_expectations": failed_expectations,
+                    "macro_band": case_layer["macro_band"],
+                    "osi_layer": case_layer["osi_layer"],
+                    "waf_pillar": case_layer["waf_pillar"],
+                    "waf_layer": case_layer,
                 }
             )
 
@@ -5802,10 +6382,10 @@ def generate_combined_report_from_dir(
     if not os.path.isdir(output_dir):
         raise ValueError(f"{output_dir} is not a directory.")
 
-    if report_format not in ("html", "json"):
+    if report_format not in ("html", "json", "csv"):
         raise ValueError(
             f"Unsupported report format: {report_format!r}. "
-            "Expected 'html' or 'json'."
+            "Expected 'html', 'json', or 'csv'."
         )
 
     if include is None or "all" in include:
@@ -6018,11 +6598,12 @@ def generate_combined_report_from_dir(
         )
 
     if not output_path:
-        default_filename = (
-            eval_utils.COMBINED_REPORT_JSON_FILENAME
-            if report_format == "json"
-            else eval_utils.COMBINED_REPORT_FILENAME
-        )
+        if report_format == "json":
+            default_filename = eval_utils.COMBINED_REPORT_JSON_FILENAME
+        elif report_format == "csv":
+            default_filename = "combined_report.csv"
+        else:
+            default_filename = eval_utils.COMBINED_REPORT_FILENAME
         report_name = eval_utils.add_timestamp_suffix(
             default_filename, resolved_timestamp
         )
@@ -6039,6 +6620,17 @@ def generate_combined_report_from_dir(
             golden_modality=modality,
             sim_modality=modality,
             audio_analysis=audio_analysis,
+        )
+    elif report_format == "csv":
+        actual_path = generate_combined_csv_report(
+            golden_results=golden_results,
+            sim_results=sim_results,
+            tool_results=tool_results,
+            callback_results=callback_results,
+            output_path=output_path,
+            app_name=app_name or "",
+            golden_modality=modality,
+            sim_modality=modality,
         )
     else:
         actual_path = generate_combined_html_report(

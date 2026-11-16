@@ -638,16 +638,37 @@ def app_lint(args: argparse.Namespace) -> None:
         build_registry,
         run_rules,
     )
+    from cxas_scrapi.utils.waf_layers import (  # noqa: PLC0415
+        normalize_waf_pillar,
+    )
 
     registry = build_registry()
 
     model_override = getattr(args, "model", None)
     model_only = getattr(args, "model_only", False)
+    band_filter = getattr(args, "band", None)
+    waf_pillar_raw = getattr(args, "waf_pillar", None)
+    try:
+        waf_pillar_filter = (
+            normalize_waf_pillar(waf_pillar_raw) if waf_pillar_raw else None
+        )
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(2)
 
     if getattr(args, "list_rules", False):
         print("CXAS Agent Linter — Available Rules")
         print("=" * 60)
-        registry.list_rules(model=model_override, model_only=model_only)
+        try:
+            registry.list_rules(
+                model=model_override,
+                model_only=model_only,
+                band=band_filter,
+                waf_pillar=waf_pillar_filter,
+            )
+        except ValueError as e:
+            print(f"Error: {e}", file=sys.stderr)
+            sys.exit(2)
         sys.exit(0)
 
     json_output = getattr(args, "json_output", False)
@@ -672,6 +693,10 @@ def app_lint(args: argparse.Namespace) -> None:
         if rule_obj is not None:
             for result in rule_obj.check(resource_path, "", context):
                 report.add(result)
+        if band_filter is not None or waf_pillar_filter is not None:
+            report = report.filter_by_layer(
+                band=band_filter, waf_pillar=waf_pillar_filter
+            )
         report.print_and_exit(json_output, show_fixes)
         return
 
@@ -765,6 +790,11 @@ def app_lint(args: argparse.Namespace) -> None:
         specific_rules=specific_rules,
         model_only=model_only,
     )
+
+    if band_filter is not None or waf_pillar_filter is not None:
+        report = report.filter_by_layer(
+            band=band_filter, waf_pillar=waf_pillar_filter
+        )
 
     report.print_and_exit(json_output, show_fixes)
 

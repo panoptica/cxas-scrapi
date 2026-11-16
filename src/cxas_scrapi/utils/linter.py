@@ -34,6 +34,13 @@ from pathlib import Path
 
 import yaml
 
+from cxas_scrapi.utils.waf_layers import (
+    MACRO_BANDS,
+    LayerMetadata,
+    normalize_waf_pillar,
+    resolve_rule_layer,
+)
+
 # ── Severity ─────────────────────────────────────────────────────────────
 
 
@@ -78,6 +85,11 @@ class LintResult:
     message: str
     line: int | None = None
     fix_suggestion: str = ""
+    category: str = ""
+
+    @property
+    def layer_metadata(self) -> LayerMetadata:
+        return resolve_rule_layer(self.rule_id, self.category, self.file)
 
     def __str__(self) -> typing.Any:
         prefix = {"error": "E", "warning": "W", "info": "I"}[
@@ -86,10 +98,11 @@ class LintResult:
         loc = self.file
         if self.line:
             loc += f":{self.line}"
-        return f"  [{prefix}] {loc} [{self.rule_id}] {self.message}"
+        tag = self.layer_metadata.format_tag()
+        return f"  [{prefix}] {loc} [{self.rule_id}] {tag} {self.message}"
 
     def to_dict(self) -> dict:
-        return {
+        data = {
             "file": self.file,
             "line": self.line,
             "severity": self.severity.value,
@@ -97,6 +110,8 @@ class LintResult:
             "message": self.message,
             "fix_suggestion": self.fix_suggestion,
         }
+        data.update(self.layer_metadata.to_dict())
+        return data
 
 
 # ── Lint Report ──────────────────────────────────────────────────────────
@@ -120,6 +135,34 @@ class LintReport:
     def add_all(self, results: list) -> None:
         self.results.extend(results)
 
+    def filter_by_layer(
+        self,
+        band: int | None = None,
+        waf_pillar: str | None = None,
+    ) -> "LintReport":
+        """Return a new LintReport filtered by Macro-Band and/or WAF Pillar."""
+        if band is not None and band not in MACRO_BANDS:
+            msg = f"Invalid Macro-Band '{band}'. Valid values: 1, 2, 3, 4"
+            raise ValueError(msg)
+        canonical_pillar = (
+            normalize_waf_pillar(waf_pillar) if waf_pillar else None
+        )
+        if band is None and canonical_pillar is None:
+            return LintReport(results=list(self.results))
+
+        filtered = []
+        for r in self.results:
+            meta = r.layer_metadata
+            if band is not None and meta.macro_band != band:
+                continue
+            if (
+                canonical_pillar is not None
+                and meta.waf_pillar != canonical_pillar
+            ):
+                continue
+            filtered.append(r)
+        return LintReport(results=filtered)
+
     def print_summary(self, show_fixes: typing.Any = False) -> None:
         if not self.results:
             print("\n  All checks passed.")
@@ -136,6 +179,25 @@ class LintReport:
             f"{len(self.warnings)} warning(s), "
             f"{info_count} info"
         )
+
+        print("\n  4-Band Architecture Breakdown:")
+        for band_num in (1, 2, 3, 4):
+            band_info = MACRO_BANDS[band_num]
+            band_results = [
+                r
+                for r in self.results
+                if r.layer_metadata.macro_band == band_num
+            ]
+            b_err = sum(1 for r in band_results if r.severity == Severity.ERROR)
+            b_warn = sum(
+                1 for r in band_results if r.severity == Severity.WARNING
+            )
+            b_info = len(band_results) - b_err - b_warn
+            print(
+                f"    Band {band_num} ({band_info['short_name']}, "
+                f"{band_info['osi_layers']}): "
+                f"{b_err} error(s), {b_warn} warning(s), {b_info} info"
+            )
 
     def to_json(self) -> str:
         return json.dumps([r.to_dict() for r in self.results], indent=2)
@@ -191,6 +253,11 @@ class Rule(ABC):
     target: str = ""
     models: list[str] | None = None
 
+    @property
+    def layer_metadata(self) -> LayerMetadata:
+        """Resolve Macro-Band, Agentic OSI Layer, and WAF Pillar metadata."""
+        return resolve_rule_layer(self.id, self.category)
+
     def is_applicable_for_model(self, model: str | None) -> bool:
         """Check if this rule is applicable for the given model.
 
@@ -231,6 +298,7 @@ class Rule(ABC):
             message=message,
             line=line,
             fix_suggestion=fix,
+            category=self.category,
         )
 
 
@@ -274,6 +342,7 @@ def rule(
         elif isinstance(getattr(cls, "models", None), str):
             cls.models = [cls.models]
         instance = cls()
+        instance.category = category
         key = (instance.id, category)
         if key not in _REGISTERED_IDS:
             _REGISTERED_IDS.add(key)
@@ -395,9 +464,28 @@ class RuleRegistry:
         return [r for r in self.all_rules() if r.is_applicable_for_model(model)]
 
     def list_rules(
-        self, model: str | None = None, model_only: bool = False
+        self,
+        model: str | None = None,
+        model_only: bool = False,
+        band: int | None = None,
+        waf_pillar: str | None = None,
     ) -> None:
-        """Print all registered rules, optionally filtered by model."""
+        """Print registered rules, optionally filtered by model/band/pillar."""
+        if band is not None and band not in MACRO_BANDS:
+            msg = f"Invalid Macro-Band '{band}'. Valid values: 1, 2, 3, 4"
+            raise ValueError(msg)
+        canonical_pillar = (
+            normalize_waf_pillar(waf_pillar) if waf_pillar else None
+        )
+
+        print("\n  4-Band Agentic OSI Architecture Legend:")
+        for band_num in (1, 2, 3, 4):
+            b = MACRO_BANDS[band_num]
+            print(
+                f"    Band {band_num}: {b['name']} ({b['osi_layers']}) "
+                f"— {b['artifact_scope']}"
+            )
+
         current_cat = ""
         if model:
             rules = self.rules_for_model(model, model_only=model_only)
@@ -406,14 +494,25 @@ class RuleRegistry:
         else:
             rules = self.all_rules()
 
+        if band is not None:
+            rules = [r for r in rules if r.layer_metadata.macro_band == band]
+        if canonical_pillar is not None:
+            rules = [
+                r
+                for r in rules
+                if r.layer_metadata.waf_pillar == canonical_pillar
+            ]
+
         for r in rules:
             if r.category != current_cat:
                 current_cat = r.category
                 print(f"\n  {current_cat.upper()}")
             sev = r.default_severity.value.upper()
+            layer_tag = r.layer_metadata.format_tag()
             model_info = f" [models: {', '.join(r.models)}]" if r.models else ""
             print(
-                f"    {r.id}  [{sev:7s}]{model_info}  {r.name}: {r.description}"
+                f"    {r.id}  [{sev:7s}] {layer_tag}{model_info}  "
+                f"{r.name}: {r.description}"
             )
 
 
@@ -923,6 +1022,8 @@ def run_rules(
                     continue
                 for result in rule_obj.check(file_path, content, context):
                     result.severity = sev
+                    if not result.category:
+                        result.category = rule_obj.category
                     report.add(result)
 
     def _get_rules(category: str) -> list[Rule]:

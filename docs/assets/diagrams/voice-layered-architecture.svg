@@ -1,0 +1,220 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 680" width="1100" height="680" role="img" aria-labelledby="svg-title svg-desc">
+  <title id="svg-title">GECX TCP/IP over OSI Hybrid Voice Architecture Stack</title>
+  <desc id="svg-desc">Four horizontal engineering Macro-Bands mapping L1 through L7 Agentic OSI diagnostic layers, F1 Testing Pyramid gates, and the five Google Cloud Agentic Well-Architected Framework pillars onto the sub-1,200ms physical telephony wire contract.</desc>
+  <defs>
+    <style>
+      .font-sans { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+      .font-mono { font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+      .title { font-size: 19px; font-weight: 700; fill: #0f172a; }
+      .subtitle { font-size: 12px; font-weight: 500; fill: #475569; }
+      .band-title { font-size: 13.5px; font-weight: 700; }
+      .band-pill { font-size: 11px; font-weight: 600; }
+      .pyramid-pill { font-size: 10.5px; font-weight: 700; }
+      .osi-title { font-size: 11.5px; font-weight: 700; }
+      .osi-body { font-size: 11px; font-weight: 400; fill: #334155; }
+      .wire-title { font-size: 13px; font-weight: 700; fill: #f8fafc; letter-spacing: 0.3px; }
+      .wire-sub { font-size: 11.5px; font-weight: 500; fill: #cbd5e1; }
+      .waf-header { font-size: 13.5px; font-weight: 700; fill: #0f172a; }
+      .waf-sub { font-size: 10.5px; font-weight: 500; fill: #64748b; }
+      .waf-card-title { font-size: 12px; font-weight: 700; }
+      .waf-card-meta { font-size: 10px; font-weight: 600; fill: #475569; }
+      .waf-card-body { font-size: 10.5px; font-weight: 400; fill: #334155; }
+    </style>
+  </defs>
+
+  <!-- Canvas Background -->
+  <rect x="0" y="0" width="1100" height="680" rx="12" fill="#ffffff" />
+
+  <!-- Header -->
+  <text x="24" y="34" class="font-sans title">GECX &quot;TCP/IP over OSI&quot; Hybrid Voice Architecture Stack</text>
+  <text x="24" y="54" class="font-sans subtitle">4 Builder Macro-Bands &#215; L1&#8211;L7 Agentic OSI Diagnostic Layers  |  Production Agent = Probabilistic Model + Deterministic Harness</text>
+
+  <!-- =================================================================== -->
+  <!-- MACRO-BAND 4 (Top): Tool Transport & Clean Data Facade              -->
+  <!-- =================================================================== -->
+  <g transform="translate(24, 72)">
+    <rect x="0" y="0" width="818" height="120" rx="10" fill="#fff4e6" stroke="#e67700" stroke-width="2" />
+    <!-- Band Header -->
+    <rect x="12" y="9" width="64" height="20" rx="5" fill="#ffd8a8" stroke="#e67700" stroke-width="1" />
+    <text x="44" y="23" text-anchor="middle" class="font-sans band-pill" fill="#b45309">BAND 4</text>
+    <text x="86" y="24" class="font-sans band-title" fill="#9a3412">Tool Transport &amp; Clean Data Facade</text>
+    <rect x="342" y="9" width="214" height="20" rx="5" fill="#ffffff" stroke="#fdba74" stroke-width="1" />
+    <text x="449" y="23" text-anchor="middle" class="font-mono band-pill" fill="#9a3412">tools/*/python_code.py (&lt;=5s SLA)</text>
+    <rect x="628" y="9" width="178" height="20" rx="10" fill="#ffd8a8" stroke="#e67700" stroke-width="1" />
+    <text x="717" y="23" text-anchor="middle" class="font-sans pyramid-pill" fill="#7c2d12">F1 Pyramid L1: Tool Dyno</text>
+
+    <!-- OSI L4 Card -->
+    <rect x="12" y="36" width="391" height="74" rx="7" fill="#ffffff" stroke="#f59f00" stroke-width="1.2" />
+    <text x="24" y="54" class="font-sans osi-title" fill="#b45309">OSI L4 &#8212; Transport / Execution SLA &amp; Circuit Breaker</text>
+    <text x="24" y="73" class="font-sans osi-body">&#8226; Bounded &lt;=5s Client SLA vs. 30s platform harpoon timeout</text>
+    <text x="24" y="91" class="font-sans osi-body">&#8226; Stateful 503 Circuit Breaker (attempt &gt;= 2) &#183; Rules T001&#8211;T013</text>
+
+    <!-- OSI L6b Card -->
+    <rect x="415" y="36" width="391" height="74" rx="7" fill="#ffffff" stroke="#f59f00" stroke-width="1.2" />
+    <text x="427" y="54" class="font-sans osi-title" fill="#b45309">OSI L6b &#8212; Presentation / Clean DTO Facade</text>
+    <text x="427" y="73" class="font-sans osi-body">&#8226; Clean DTO projection (&quot;It can&apos;t leak what it never saw&quot;, T006)</text>
+    <text x="427" y="91" class="font-sans osi-body">&#8226; UNTRUSTED_EXTERNAL_DATA &amp; explicit NULL_LEDGER_DATA</text>
+  </g>
+
+  <!-- =================================================================== -->
+  <!-- MACRO-BAND 3: Cognitive Brain & Routing Topology                    -->
+  <!-- =================================================================== -->
+  <g transform="translate(24, 204)">
+    <rect x="0" y="0" width="818" height="120" rx="10" fill="#f3f0ff" stroke="#7048e8" stroke-width="2" />
+    <!-- Band Header -->
+    <rect x="12" y="9" width="64" height="20" rx="5" fill="#d0bfff" stroke="#7048e8" stroke-width="1" />
+    <text x="44" y="23" text-anchor="middle" class="font-sans band-pill" fill="#5b21b6">BAND 3</text>
+    <text x="86" y="24" class="font-sans band-title" fill="#4c1d95">Cognitive Brain &amp; Routing Topology</text>
+    <rect x="342" y="9" width="204" height="20" rx="5" fill="#ffffff" stroke="#c4b5fd" stroke-width="1" />
+    <text x="444" y="23" text-anchor="middle" class="font-mono band-pill" fill="#5b21b6">agents/*/instruction.txt</text>
+    <rect x="578" y="9" width="228" height="20" rx="10" fill="#d0bfff" stroke="#7048e8" stroke-width="1" />
+    <text x="692" y="23" text-anchor="middle" class="font-sans pyramid-pill" fill="#4c1d95">F1 Pyramid L3: Turn/Golden Chicane</text>
+
+    <!-- OSI L3 Card -->
+    <rect x="12" y="36" width="391" height="74" rx="7" fill="#ffffff" stroke="#845ef7" stroke-width="1.2" />
+    <text x="24" y="54" class="font-sans osi-title" fill="#5b21b6">OSI L3 &#8212; Network / Agent Routing Topology</text>
+    <text x="24" y="73" class="font-sans osi-body">&#8226; Shallow Spoke-and-Hub routing minimizes multi-hop latency</text>
+    <text x="24" y="91" class="font-sans osi-body">&#8226; Native end_session tool (A005) &amp; tree checks (I008/S004/S007)</text>
+
+    <!-- OSI L7 Card -->
+    <rect x="415" y="36" width="391" height="74" rx="7" fill="#ffffff" stroke="#845ef7" stroke-width="1.2" />
+    <text x="427" y="54" class="font-sans osi-title" fill="#5b21b6">OSI L7 &#8212; Application / Cognitive XML Policy</text>
+    <text x="427" y="73" class="font-sans osi-body">&#8226; Structured XML (&lt;role&gt;, &lt;constraints&gt;, {current_date} I014/I015)</text>
+    <text x="427" y="91" class="font-sans osi-body">&#8226; Groundedness: zero hallucinated fees or prose FSMs (I016)</text>
+  </g>
+
+  <!-- =================================================================== -->
+  <!-- MACRO-BAND 2: Deterministic Python Harness                          -->
+  <!-- =================================================================== -->
+  <g transform="translate(24, 336)">
+    <rect x="0" y="0" width="818" height="120" rx="10" fill="#ebfbee" stroke="#2b8a3e" stroke-width="2" />
+    <!-- Band Header -->
+    <rect x="12" y="9" width="64" height="20" rx="5" fill="#b2f2bb" stroke="#2b8a3e" stroke-width="1" />
+    <text x="44" y="23" text-anchor="middle" class="font-sans band-pill" fill="#166534">BAND 2</text>
+    <text x="86" y="24" class="font-sans band-title" fill="#14532d">Deterministic Python Harness</text>
+    <rect x="304" y="9" width="242" height="20" rx="5" fill="#ffffff" stroke="#86efac" stroke-width="1" />
+    <text x="425" y="23" text-anchor="middle" class="font-mono band-pill" fill="#166534">callbacks/ + session.state (&lt;5ms)</text>
+    <rect x="606" y="9" width="200" height="20" rx="10" fill="#b2f2bb" stroke="#2b8a3e" stroke-width="1" />
+    <text x="706" y="23" text-anchor="middle" class="font-sans pyramid-pill" fill="#14532d">F1 Pyramid L2: Callback Bench</text>
+
+    <!-- OSI L5 Card -->
+    <rect x="12" y="36" width="391" height="74" rx="7" fill="#ffffff" stroke="#40c057" stroke-width="1.2" />
+    <text x="24" y="54" class="font-sans osi-title" fill="#166534">OSI L5 &#8212; Session &amp; Identity Auth Gate</text>
+    <text x="24" y="73" class="font-sans osi-body">&#8226; session.state machine seeded in before_agent_callback (V100)</text>
+    <text x="24" y="91" class="font-sans osi-body">&#8226; before_model_callback -&gt; LlmResponse Auth Gate (C004/S003)</text>
+
+    <!-- OSI L6a Card -->
+    <rect x="415" y="36" width="391" height="74" rx="7" fill="#ffffff" stroke="#40c057" stroke-width="1.2" />
+    <text x="427" y="54" class="font-sans osi-title" fill="#166534">OSI L6a &#8212; Presentation / Post-Tool Interceptor</text>
+    <text x="427" y="73" class="font-sans osi-body">&#8226; after_tool_callback &lt;2ms Secret / PII / Injection Scrubber</text>
+    <text x="427" y="91" class="font-sans osi-body">&#8226; Deterministic egress &amp; singleton guardrail checks (C006/S008)</text>
+  </g>
+
+  <!-- =================================================================== -->
+  <!-- MACRO-BAND 1 (Base): Acoustic Wire & Turn Pacing                    -->
+  <!-- =================================================================== -->
+  <g transform="translate(24, 468)">
+    <rect x="0" y="0" width="818" height="120" rx="10" fill="#e7f5ff" stroke="#1c7ed6" stroke-width="2" />
+    <!-- Band Header -->
+    <rect x="12" y="9" width="64" height="20" rx="5" fill="#a5d8ff" stroke="#1c7ed6" stroke-width="1" />
+    <text x="44" y="23" text-anchor="middle" class="font-sans band-pill" fill="#1e40af">BAND 1</text>
+    <text x="86" y="24" class="font-sans band-title" fill="#1e3a8a">Acoustic Wire &amp; Turn Pacing</text>
+    <rect x="296" y="9" width="194" height="20" rx="5" fill="#ffffff" stroke="#93c5fd" stroke-width="1" />
+    <text x="393" y="23" text-anchor="middle" class="font-mono band-pill" fill="#1e40af">app.json + Tool Pacing</text>
+    <rect x="592" y="9" width="214" height="20" rx="10" fill="#a5d8ff" stroke="#1c7ed6" stroke-width="1" />
+    <text x="699" y="23" text-anchor="middle" class="font-sans pyramid-pill" fill="#1e3a8a">F1 Pyramid L4: Audio Grand Prix</text>
+
+    <!-- OSI L1 Card -->
+    <rect x="12" y="36" width="391" height="74" rx="7" fill="#ffffff" stroke="#339af0" stroke-width="1.2" />
+    <text x="24" y="54" class="font-sans osi-title" fill="#1d4ed8">OSI L1 &#8212; Physical / Acoustic Wire (&lt;800ms TTFA)</text>
+    <text x="24" y="73" class="font-sans osi-body">&#8226; Composite temp=1.0 (A010) &amp; Director&apos;s Notes (A007/A009)</text>
+    <text x="24" y="91" class="font-sans osi-body">&#8226; Full-duplex RTP &amp; SBC Barge-In flush (bargeInAwareness: true)</text>
+
+    <!-- OSI L2 Card -->
+    <rect x="415" y="36" width="391" height="74" rx="7" fill="#ffffff" stroke="#339af0" stroke-width="1.2" />
+    <text x="427" y="54" class="font-sans osi-title" fill="#1d4ed8">OSI L2 &#8212; Data Link / Turn Framing &amp; Pacing</text>
+    <text x="427" y="73" class="font-sans osi-body">&#8226; T014 Spoken Filler Bridges (&quot;Tell them, then do it&quot;)</text>
+    <text x="427" y="91" class="font-sans osi-body">&#8226; 3-Strike VAD silence framing eliminates dead air on the wire</text>
+  </g>
+
+  <!-- Wire Connectors between Band 1 and Physical Telephony Wire -->
+  <line x1="230" y1="588" x2="230" y2="600" stroke="#1c7ed6" stroke-width="2.5" />
+  <line x1="636" y1="588" x2="636" y2="600" stroke="#1c7ed6" stroke-width="2.5" />
+
+  <!-- =================================================================== -->
+  <!-- BOTTOM ANCHOR BAR: Physical Telephony Wire Contract                 -->
+  <!-- =================================================================== -->
+  <g transform="translate(24, 600)">
+    <rect x="0" y="0" width="818" height="62" rx="10" fill="#0f172a" stroke="#1e293b" stroke-width="2" />
+    <rect x="14" y="12" width="154" height="38" rx="6" fill="#1d4ed8" stroke="#60a5fa" stroke-width="1.2" />
+    <text x="91" y="28" text-anchor="middle" class="font-sans" font-size="10.5" font-weight="700" fill="#dbeafe">CONVERSATIONAL SLA</text>
+    <text x="91" y="43" text-anchor="middle" class="font-mono" font-size="12" font-weight="700" fill="#ffffff">&lt;1,200ms CEILING</text>
+    <text x="184" y="26" class="font-sans wire-title">Physical Telephony Wire Contract &#8212; Foundation First Principle</text>
+    <text x="184" y="46" class="font-sans wire-sub">PSTN / SIP / SBC / RTP Audio Stream  &#8226;  Gemini Composite (&lt;800ms TTFA)  &#8226;  Zero Dead Air Budget</text>
+  </g>
+
+  <!-- =================================================================== -->
+  <!-- RIGHT CALLOUT: 5 Google Cloud Agentic WAF Pillars                   -->
+  <!-- =================================================================== -->
+  <g transform="translate(856, 72)">
+    <rect x="0" y="0" width="220" height="590" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" />
+    <text x="16" y="25" class="font-sans waf-header">Google Cloud Agentic</text>
+    <text x="16" y="43" class="font-sans waf-header">WAF Pillars</text>
+    <text x="16" y="59" class="font-sans waf-sub">Cross-stack quality &amp; lint gates</text>
+
+    <!-- Pillar 1: Performance -->
+    <g transform="translate(12, 72)">
+      <rect x="0" y="0" width="196" height="92" rx="8" fill="#ffffff" stroke="#1c7ed6" stroke-width="1.5" />
+      <rect x="0" y="0" width="6" height="92" rx="3" fill="#1c7ed6" />
+      <text x="14" y="20" class="font-sans waf-card-title" fill="#1d4ed8">1. Performance</text>
+      <text x="14" y="36" class="font-mono waf-card-meta">Bands 1 &amp; 3 &#183; OSI L1&#8211;L3</text>
+      <text x="14" y="54" class="font-sans waf-card-body">&lt;800ms TTFA, T014 fillers,</text>
+      <text x="14" y="70" class="font-sans waf-card-body">barge-in &amp; shallow routing</text>
+      <text x="14" y="84" class="font-mono waf-card-meta">Rules: A007&#8211;A010, T014, S007</text>
+    </g>
+
+    <!-- Pillar 2: Security -->
+    <g transform="translate(12, 174)">
+      <rect x="0" y="0" width="196" height="92" rx="8" fill="#ffffff" stroke="#2b8a3e" stroke-width="1.5" />
+      <rect x="0" y="0" width="6" height="92" rx="3" fill="#2b8a3e" />
+      <text x="14" y="20" class="font-sans waf-card-title" fill="#15803d">2. Security</text>
+      <text x="14" y="36" class="font-mono waf-card-meta">Bands 2, 3 &amp; 4 &#183; L5, L6a/b, L7</text>
+      <text x="14" y="54" class="font-sans waf-card-body">Two-Plane Auth Gate, &lt;2ms</text>
+      <text x="14" y="70" class="font-sans waf-card-body">PII scrubber &amp; clean DTOs</text>
+      <text x="14" y="84" class="font-mono waf-card-meta">Rules: S003, S008, V005, I015</text>
+    </g>
+
+    <!-- Pillar 3: Reliability -->
+    <g transform="translate(12, 276)">
+      <rect x="0" y="0" width="196" height="92" rx="8" fill="#ffffff" stroke="#e67700" stroke-width="1.5" />
+      <rect x="0" y="0" width="6" height="92" rx="3" fill="#e67700" />
+      <text x="14" y="20" class="font-sans waf-card-title" fill="#b45309">3. Reliability</text>
+      <text x="14" y="36" class="font-mono waf-card-meta">Bands 2, 3 &amp; 4 &#183; L3&#8211;L5, L7</text>
+      <text x="14" y="54" class="font-sans waf-card-body">&lt;=5s SLA, 503 circuit breaker,</text>
+      <text x="14" y="70" class="font-sans waf-card-body">NULL_LEDGER groundedness</text>
+      <text x="14" y="84" class="font-mono waf-card-meta">Rules: A005, C004, I016, T009</text>
+    </g>
+
+    <!-- Pillar 4: Cost -->
+    <g transform="translate(12, 378)">
+      <rect x="0" y="0" width="196" height="92" rx="8" fill="#ffffff" stroke="#7048e8" stroke-width="1.5" />
+      <rect x="0" y="0" width="6" height="92" rx="3" fill="#7048e8" />
+      <text x="14" y="20" class="font-sans waf-card-title" fill="#6d28d9">4. Cost</text>
+      <text x="14" y="36" class="font-mono waf-card-meta">Bands 2, 3 &amp; 4 &#183; L3, L5, L6b</text>
+      <text x="14" y="54" class="font-sans waf-card-body">Callback short-circuits, lean</text>
+      <text x="14" y="70" class="font-sans waf-card-body">prompts &amp; slim DTO payloads</text>
+      <text x="14" y="84" class="font-mono waf-card-meta">Rules: I007, I012, T006, T008</text>
+    </g>
+
+    <!-- Pillar 5: Operational Excellence -->
+    <g transform="translate(12, 480)">
+      <rect x="0" y="0" width="196" height="96" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.5" />
+      <rect x="0" y="0" width="6" height="96" rx="3" fill="#475569" />
+      <text x="14" y="20" class="font-sans waf-card-title" fill="#334155">5. Operational Excellence</text>
+      <text x="14" y="36" class="font-mono waf-card-meta">All 4 Bands &#183; F1 Pyramid L1&#8211;L4</text>
+      <text x="14" y="54" class="font-sans waf-card-body">Layer-tagged deterministic</text>
+      <text x="14" y="70" class="font-sans waf-card-body">linting &amp; CI evaluation gates</text>
+      <text x="14" y="85" class="font-mono waf-card-meta">--band {1..4} --waf-pillar</text>
+    </g>
+  </g>
+</svg>

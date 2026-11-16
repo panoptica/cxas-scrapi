@@ -2771,6 +2771,36 @@ def get_parser() -> argparse.ArgumentParser:
         help="Run specific rules only (comma-separated IDs, e.g. I003,C005).",
     )
     parser_lint.add_argument(
+        "--band",
+        type=int,
+        choices=[1, 2, 3, 4],
+        default=None,
+        help=(
+            "Filter rules/results by Agentic OSI Macro-Band: "
+            "1 (Acoustic Wire & Turn Pacing / OSI L1-L2), "
+            "2 (Deterministic Python Harness / OSI L5-L6a), "
+            "3 (Cognitive Brain & Routing Topology / OSI L3 & L7), "
+            "4 (Tool Transport & Clean Data Facade / OSI L4 & L6b)."
+        ),
+    )
+    parser_lint.add_argument(
+        "--waf-pillar",
+        type=str.lower,
+        choices=[
+            "performance",
+            "security",
+            "reliability",
+            "cost",
+            "ops",
+            "operational-excellence",
+        ],
+        default=None,
+        help=(
+            "Filter rules/results by Google Cloud Well-Architected Framework "
+            "(WAF) pillar (case-insensitive)."
+        ),
+    )
+    parser_lint.add_argument(
         "--json",
         action="store_true",
         dest="json_output",
@@ -2850,6 +2880,12 @@ def get_parser() -> argparse.ArgumentParser:
     parser_llm_lint.add_argument(
         "--output",
         help="Optional path to write the markdown lint report.",
+    )
+    parser_llm_lint.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Output structured semantic lint results and layer tags as JSON.",
     )
     parser_llm_lint.set_defaults(func=llm_lint)
 

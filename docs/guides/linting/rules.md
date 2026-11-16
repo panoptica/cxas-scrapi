@@ -5,28 +5,46 @@ description: Complete reference for all CXAS linter rules, organized by category
 
 # Rule Reference
 
-The CXAS linter has 50+ rules across 7 categories. This page documents every rule — what it checks, what triggers it, and how to fix it.
+The CXAS linter has 60+ rules across 7 categories. This page documents every rule — what it checks, which architectural layer and Well-Architected pillar it guards, what triggers it, and how to fix it.
 
 Severities shown are the defaults. You can override any rule's severity in `cxaslint.yaml`.
+
+## Macro-Band, Agentic OSI Layer & WAF Pillar Classification
+
+Every lint finding is tagged with its [Hybrid Voice Architecture](../../design-guide/agent-architecture.md#layered-voice-architecture-agentic-well-architected-framework-tcpip-over-osi) coordinates — **`[Band X / OSI LY • Pillar]`** — so you can filter checks by engineering layer (`cxas lint --band {1,2,3,4}`) or Google Cloud Agentic Well-Architected Framework (WAF) pillar (`cxas lint --waf-pillar <pillar>`):
+
+| Macro-Band | Agentic OSI Layers | F1 Testing Pyramid Gate | Rule IDs | WAF Pillars Covered |
+|---|---|---|---|---|
+| **Band 1 — Acoustic Wire & Turn Pacing**<br>(`app.json` & Tool Pacing) | **`OSI L1`** (Physical / Acoustic Wire)<br>**`OSI L2`** (Data Link / Turn Framing & Pacing) | `Pyramid L4: Audio Grand Prix` | • **`L1`:** `A001`, `A002`, `A007`, `A008`, `A009`, `A010`, `V001`, `E009`<br>• **`L2`:** `T014`, `E012` | `Performance`, `Reliability`, `Operational Excellence` |
+| **Band 2 — Deterministic Python Harness**<br>(`callbacks/` & `session.state`) | **`OSI L5`** (Session & Identity Gate)<br>**`OSI L6a`** (Presentation / Post-Tool Interceptor) | `Pyramid L2: Callback Bench` | • **`L5`:** `C001`–`C005`, `C007`, `C010`, `S003`, `E004`, `E006`, `V100`–`V103` *(callbacks/evals)*<br>• **`L6a`:** `C006`, `S008`, `V005` | `Security`, `Reliability`, `Performance`, `Operational Excellence` |
+| **Band 3 — Cognitive Brain & Routing Topology**<br>(`agents/*/instruction.txt` & routing) | **`OSI L3`** (Network / Agent Routing Topology)<br>**`OSI L7`** (Application / Cognitive XML Policy) | `Pyramid L3: Turn/Golden Chicane` | • **`L3`:** `A003`, `A005`, `A006`, `I007`, `I008`, `I010`, `S004`, `S005`, `S007`, `V002`<br>• **`L7`:** `A004`, `I001`–`I006`, `I009`, `I011`–`I016`, `S002`, `V006`, `V007`, `V100`–`V103` *(instructions)*, `V104`, `E001`, `E002`, `E005`, `E007`, `E008` | `Reliability`, `Performance`, `Security`, `Cost`, `Operational Excellence` |
+| **Band 4 — Tool Transport & Clean Data Facade**<br>(`tools/*/python_code.py`) | **`OSI L4`** (Transport / Execution SLA & Circuit Breaker)<br>**`OSI L6b`** (Presentation / Clean DTO Facade) | `Pyramid L1: Tool Dyno` | • **`L4`:** `S006`, `T001`, `T004`, `T007`–`T011`, `T013`, `V003`, `V004`, `E003`, `E010`<br>• **`L6b`:** `T002`, `T003`, `T005`, `T006`, `T012`, `E011`, `V100`–`V103` *(tools)* | `Reliability`, `Cost`, `Operational Excellence` |
+
+!!! note "Context-aware variable rule resolution (`V100`–`V103`)"
+    Multi-artifact variable schema rules (`V100`–`V103`) dynamically resolve their Macro-Band and OSI Layer from the inspected file: **`Band 2 / OSI L5`** in callbacks and evals, **`Band 3 / OSI L7`** in `instruction.txt`, and **`Band 4 / OSI L6b`** in `tools/*/python_code.py`.
+
+---
+
+## Rules by Category
 
 === "I — Instructions"
 
     Rules in the `I` category check `instruction.txt` files for structural correctness, reference validity, and best-practice adherence.
 
-    | ID | Name | Default | Description |
-    |----|------|---------|-------------|
-    | I003 | `excessive-if-else` | Warning | 3 or more `IF/ELSE` blocks in an instruction |
-    | I004 | `negative-triggers` | Warning | Negative conditions in `<trigger>` elements |
-    | I005 | `conditional-logic-block` | Warning | `<conditional_logic>` block used for intent classification |
-    | I006 | `hardcoded-data` | Warning | Hardcoded phone numbers, prices, or other dynamic data |
-    | I007 | `instruction-too-long` | Info | Instruction exceeds word count threshold (default 3000 words) |
-    | I008 | `invalid-agent-ref` | Error | `{@AGENT: Name}` references an agent that doesn't exist |
-    | I010 | `wrong-agent-syntax` | Error | Wrong agent reference syntax (e.g., `${AGENT:...}` instead of `{@AGENT:...}`) |
-    | I011 | `wrong-tool-syntax` | Error | Wrong tool reference syntax (e.g., `{TOOL:...}` instead of `{@TOOL:...}`) |
-    | I012 | `unused-tool-in-config` | Warning | Tool is in the agent's JSON config but never referenced in the instruction |
-    | I014 | `missing-current-date` | Warning | Instruction (or global instruction) should reference `{current_date}` |
-    | I015 | `banned-legacy-xml-tags` | Error | Instruction uses a banned legacy XML tag |
-    | I016 | `prose-state-machine` | Warning | Instruction encodes a state machine in prose (named-step GOTOs, retry counters, STOP tokens, state writes, orchestrator `agent_action` traversal) |
+    | ID | Name | Default | Layer | WAF Pillar | Description |
+    |----|------|---------|-------|------------|-------------|
+    | I003 | `excessive-if-else` | Warning | `Band 3 / OSI L7` | `Performance` | 3 or more `IF/ELSE` blocks in an instruction |
+    | I004 | `negative-triggers` | Warning | `Band 3 / OSI L7` | `Reliability` | Negative conditions in `<trigger>` elements |
+    | I005 | `conditional-logic-block` | Warning | `Band 3 / OSI L7` | `Performance` | `<conditional_logic>` block used for intent classification |
+    | I006 | `hardcoded-data` | Warning | `Band 3 / OSI L7` | `Reliability` | Hardcoded phone numbers, prices, or other dynamic data |
+    | I007 | `instruction-too-long` | Info | `Band 3 / OSI L3` | `Cost` | Instruction exceeds word count threshold (default 3000 words) |
+    | I008 | `invalid-agent-ref` | Error | `Band 3 / OSI L3` | `Reliability` | `{@AGENT: Name}` references an agent that doesn't exist |
+    | I010 | `wrong-agent-syntax` | Error | `Band 3 / OSI L3` | `Reliability` | Wrong agent reference syntax (e.g., `${AGENT:...}` instead of `{@AGENT:...}`) |
+    | I011 | `wrong-tool-syntax` | Error | `Band 3 / OSI L7` | `Reliability` | Wrong tool reference syntax (e.g., `{TOOL:...}` instead of `{@TOOL:...}`) |
+    | I012 | `unused-tool-in-config` | Warning | `Band 3 / OSI L7` | `Cost` | Tool is in the agent's JSON config but never referenced in the instruction |
+    | I014 | `missing-current-date` | Warning | `Band 3 / OSI L7` | `Reliability` | Instruction (or global instruction) should reference `{current_date}` |
+    | I015 | `banned-legacy-xml-tags` | Error | `Band 3 / OSI L7` | `Security` | Instruction uses a banned legacy XML tag |
+    | I016 | `prose-state-machine` | Warning | `Band 3 / OSI L7` | `Reliability` | Instruction encodes a state machine in prose (named-step GOTOs, retry counters, STOP tokens, state writes, orchestrator `agent_action` traversal) |
 
     ---
 
@@ -158,16 +176,16 @@ Severities shown are the defaults. You can override any rule's severity in `cxas
 
     Rules in the `C` category check callback `python_code.py` files for naming conventions, correct signatures, and safe coding practices.
 
-    | ID | Name | Default | Description |
-    |----|------|---------|-------------|
-    | C001 | `callback-fn-name` | Error | Callback function name must match callback type |
-    | C002 | `callback-args` | Error | Callback must have correct argument count for its type |
-    | C003 | `callback-camelcase` | Error | CES requires snake_case function names, not camelCase |
-    | C004 | `callback-return-type` | Warning | Model callbacks should return `LlmResponse`, not `dict` |
-    | C005 | `callback-hardcoded-phrases` | Warning | Hardcoded phrase lists for intent detection |
-    | C006 | `callback-bare-except` | Warning | Bare `except:` without logging swallows errors silently |
-    | C007 | `callback-tool-naming` | Info | Verify `tools.*` call uses correct naming convention |
-    | C010 | `callback-python-syntax` | Error | Callback Python file must have valid syntax |
+    | ID | Name | Default | Layer | WAF Pillar | Description |
+    |----|------|---------|-------|------------|-------------|
+    | C001 | `callback-fn-name` | Error | `Band 2 / OSI L5` | `Reliability` | Callback function name must match callback type |
+    | C002 | `callback-args` | Error | `Band 2 / OSI L5` | `Reliability` | Callback must have correct argument count for its type |
+    | C003 | `callback-camelcase` | Error | `Band 2 / OSI L5` | `Operational Excellence` | CES requires snake_case function names, not camelCase |
+    | C004 | `callback-return-type` | Warning | `Band 2 / OSI L5` | `Reliability` | Model callbacks should return `LlmResponse`, not `dict` |
+    | C005 | `callback-hardcoded-phrases` | Warning | `Band 2 / OSI L5` | `Performance` | Hardcoded phrase lists for intent detection |
+    | C006 | `callback-bare-except` | Warning | `Band 2 / OSI L6a` | `Reliability` | Bare `except:` without logging swallows errors silently |
+    | C007 | `callback-tool-naming` | Info | `Band 2 / OSI L5` | `Reliability` | Verify `tools.*` call uses correct naming convention |
+    | C010 | `callback-python-syntax` | Error | `Band 2 / OSI L5` | `Reliability` | Callback Python file must have valid syntax |
 
     ---
 
@@ -245,20 +263,22 @@ Severities shown are the defaults. You can override any rule's severity in `cxas
 
 === "T — Tools"
 
-    Rules in the `T` category check tool `python_code.py` files.
+    Rules in the `T` category check tool `python_code.py` files, JSON tool definitions, and voice turn-pacing bridges.
 
-    | ID | Name | Default | Description |
-    |----|------|---------|-------------|
-    | T002 | `tool-docstring` | Warning | Tool missing docstring |
-    | T003 | `tool-type-hints` | Info | Tool function arguments lack type hints |
-    | T004 | `tool-fn-name` | Warning | Tool function name should match tool directory name |
-    | T005 | `tool-high-cardinality` | Info | High-cardinality input arguments |
-    | T006 | `tool-return-explosion` | Info | Tool returning excessive data |
-    | T008 | `tool-displayname-unreferenced` | Warning | Tool displayName not referenced by any agent |
-    | T009 | `tool-kwargs-signature` | Error | Tool function uses `**kwargs` |
-    | T010 | `tool-python-syntax` | Error | Tool Python file must have valid syntax |
-    | T011 | `tool-none-default` | Error | Tool parameter uses `None` as default value |
-    | T012 | `tool-json-missing-description` | Error | Tool JSON configuration must include description |
+    | ID | Name | Default | Layer | WAF Pillar | Description |
+    |----|------|---------|-------|------------|-------------|
+    | T002 | `tool-docstring` | Warning | `Band 4 / OSI L6b` | `Operational Excellence` | Tool missing docstring |
+    | T003 | `tool-type-hints` | Info | `Band 4 / OSI L6b` | `Reliability` | Tool function arguments lack type hints |
+    | T004 | `tool-fn-name` | Warning | `Band 4 / OSI L4` | `Reliability` | Tool function name should match tool directory name |
+    | T005 | `tool-high-cardinality` | Info | `Band 4 / OSI L6b` | `Reliability` | High-cardinality input arguments |
+    | T006 | `tool-return-explosion` | Info | `Band 4 / OSI L6b` | `Cost` | Tool returning excessive data |
+    | T008 | `tool-displayname-unreferenced` | Warning | `Band 4 / OSI L4` | `Cost` | Tool displayName not referenced by any agent |
+    | T009 | `tool-kwargs-signature` | Error | `Band 4 / OSI L4` | `Reliability` | Tool function uses `**kwargs` |
+    | T010 | `tool-python-syntax` | Error | `Band 4 / OSI L4` | `Reliability` | Tool Python file must have valid syntax |
+    | T011 | `tool-none-default` | Error | `Band 4 / OSI L4` | `Reliability` | Tool parameter uses `None` as default value |
+    | T012 | `tool-json-missing-description` | Error | `Band 4 / OSI L6b` | `Operational Excellence` | Tool JSON configuration must include description |
+    | T013 | `tool-config-invalid` | Error | `Band 4 / OSI L4` | `Reliability` | Tool JSON configuration must be a valid JSON object/dictionary |
+    | T014 | `composite-tool-pacing` | Warning | `Band 1 / OSI L2` | `Performance` | Tool docstring or description must include a conversational pacing directive to prevent dead air |
 
     ---
 
@@ -312,20 +332,20 @@ Severities shown are the defaults. You can override any rule's severity in `cxas
 
     Rules in the `E` category check golden and simulation YAML files.
 
-    | ID | Name | Default | Description |
-    |----|------|---------|-------------|
-    | E001 | `eval-yaml-parse` | Error | Eval file must be valid YAML |
-    | E002 | `eval-structure` | Error | Golden eval must have `conversations:` key |
-    | E003 | `eval-tool-exists` | Warning | Tool calls in evals must reference existing tools |
-    | E004 | `eval-session-param` | Warning | Session parameters should reference known variables |
-    | E005 | `eval-duplicate-keys` | Error | Duplicate YAML keys (second overwrites first) |
-    | E006 | `eval-no-mocks` | Warning | Golden with `tool_calls` but no `session_parameters` |
-    | E007 | `eval-agent-not-string` | Error | Golden `agent` field must be a plain string, not a dict |
-    | E008 | `eval-missing-agent` | Warning | Golden turn has `user` but no `agent` field |
-    | E009 | `eval-sim-missing-tags` | Warning | Simulation eval missing `tags` field |
-    | E010 | `eval-tool-test-wrong-key` | Error | Tool test uses `test_cases` instead of `tests` |
-    | E011 | `eval-invalid-match-type` | Error | Invalid `$matchType` value in golden `tool_calls` |
-    | E012 | `eval-shadow-structure` | Error | Shadow eval needs `conversation_id` and non-empty `expectations`, a valid `replay_mode`, and only known keys (unknown keys are warnings) |
+    | ID | Name | Default | Layer | WAF Pillar | Description |
+    |----|------|---------|-------|------------|-------------|
+    | E001 | `eval-yaml-parse` | Error | `Band 3 / OSI L7` | `Operational Excellence` | Eval file must be valid YAML |
+    | E002 | `eval-structure` | Error | `Band 3 / OSI L7` | `Operational Excellence` | Golden eval must have `conversations:` key |
+    | E003 | `eval-tool-exists` | Warning | `Band 4 / OSI L4` | `Reliability` | Tool calls in evals must reference existing tools |
+    | E004 | `eval-session-param` | Warning | `Band 2 / OSI L5` | `Operational Excellence` | Session parameters should reference known variables |
+    | E005 | `eval-duplicate-keys` | Error | `Band 3 / OSI L7` | `Operational Excellence` | Duplicate YAML keys (second overwrites first) |
+    | E006 | `eval-no-mocks` | Warning | `Band 2 / OSI L5` | `Operational Excellence` | Golden with `tool_calls` but no `session_parameters` |
+    | E007 | `eval-agent-not-string` | Error | `Band 3 / OSI L7` | `Operational Excellence` | Golden `agent` field must be a plain string, not a dict |
+    | E008 | `eval-missing-agent` | Warning | `Band 3 / OSI L7` | `Reliability` | Golden turn has `user` but no `agent` field |
+    | E009 | `eval-sim-missing-tags` | Warning | `Band 1 / OSI L1` | `Operational Excellence` | Simulation eval missing `tags` field |
+    | E010 | `eval-tool-test-wrong-key` | Error | `Band 4 / OSI L4` | `Operational Excellence` | Tool test uses `test_cases` instead of `tests` |
+    | E011 | `eval-invalid-match-type` | Error | `Band 4 / OSI L6b` | `Operational Excellence` | Invalid `$matchType` value in golden `tool_calls` |
+    | E012 | `eval-shadow-structure` | Error | `Band 1 / OSI L2` | `Operational Excellence` | Shadow eval needs `conversation_id` and non-empty `expectations`, a valid `replay_mode`, and only known keys (unknown keys are warnings) |
 
     ---
 
@@ -361,16 +381,20 @@ Severities shown are the defaults. You can override any rule's severity in `cxas
 
 === "A — Config"
 
-    Rules in the `A` category check `app.json` and agent JSON configuration files.
+    Rules in the `A` category check `app.json`, agent JSON configuration files, and Gemini Composite acoustic voice settings.
 
-    | ID | Name | Default | Description |
-    |----|------|---------|-------------|
-    | A001 | `config-json-parse` | Error | Config file must be valid JSON |
-    | A002 | `config-required-fields` | Error | Config must have required fields (`name`, `displayName`) |
-    | A003 | `config-tool-exists` | Error | Agent config references a non-existent tool |
-    | A004 | `config-missing-instruction` | Error | Agent directory must have an `instruction.txt` file |
-    | A005 | `config-root-missing-end-session` | Error | Root agent must have `end_session` tool |
-    | A006 | `config-root-agent` | Error | App config must have a valid `rootAgent` pointing to an existing agent directory |
+    | ID | Name | Default | Layer | WAF Pillar | Description |
+    |----|------|---------|-------|------------|-------------|
+    | A001 | `config-json-parse` | Error | `Band 1 / OSI L1` | `Reliability` | Config file must be valid JSON |
+    | A002 | `config-required-fields` | Error | `Band 1 / OSI L1` | `Operational Excellence` | Config must have required fields (`name`, `displayName`) |
+    | A003 | `config-tool-exists` | Error | `Band 3 / OSI L3` | `Reliability` | Agent config references a non-existent tool |
+    | A004 | `config-missing-instruction` | Error | `Band 3 / OSI L7` | `Operational Excellence` | Agent directory must have an `instruction.txt` file |
+    | A005 | `config-root-missing-end-session` | Error | `Band 3 / OSI L3` | `Reliability` | Root agent must have `end_session` tool |
+    | A006 | `config-root-agent` | Error | `Band 3 / OSI L3` | `Reliability` | App config must have a valid `rootAgent` pointing to an existing agent directory |
+    | A007 | `composite-audio-profile` | Error | `Band 1 / OSI L1` | `Performance` | Validates `synthesizeSpeechConfigs`, Audio Profile, and Director's Notes for Gemini Composite |
+    | A008 | `composite-accent-specification` | Warning | `Band 1 / OSI L1` | `Performance` | Ensures natural language accent names instead of raw locale codes in Director's Notes |
+    | A009 | `composite-multilang-coverage` | Error | `Band 1 / OSI L1` | `Performance` | Audits multi-language voice parity across declared languages for Gemini Composite |
+    | A010 | `composite-sampling-temperature` | Warning | `Band 1 / OSI L1` | `Performance` | Enforces `modelSettings.temperature = 1.0` for Gemini Composite to prevent acoustic repetition deadlocks |
 
     ---
 
@@ -398,15 +422,15 @@ Severities shown are the defaults. You can override any rule's severity in `cxas
 
     Rules in the `S` category perform cross-reference checks between multiple files.
 
-    | ID | Name | Default | Description |
-    |----|------|---------|-------------|
-    | S002 | `agent-tool-references` | Error | Instruction references tools not in the agent's tool list |
-    | S003 | `callback-file-references` | Error | Agent JSON references callback files that don't exist |
-    | S004 | `child-agent-references` | Error | Agent JSON references child agents that don't exist |
-    | S005 | `strict-agent-path-layout` | Error | Agent config paths must be app-relative and prefixed with `agents/{agent_name}/` |
-    | S006 | `strict-tool-path-layout` | Error | Tool config paths must be app-relative and prefixed with `tools/{tool_name}/` |
-    | S007 | `sub-agent-single-parent` | Error | Sub-agents must have at most one parent agent (tree constraint) |
-    | S008 | `singleton-guardrail-types` | Error | At most one guardrail of each singleton type (`llmPromptSecurity`) per app |
+    | ID | Name | Default | Layer | WAF Pillar | Description |
+    |----|------|---------|-------|------------|-------------|
+    | S002 | `agent-tool-references` | Error | `Band 3 / OSI L7` | `Reliability` | Instruction references tools not in the agent's tool list |
+    | S003 | `callback-file-references` | Error | `Band 2 / OSI L5` | `Security` | Agent JSON references callback files that don't exist |
+    | S004 | `child-agent-references` | Error | `Band 3 / OSI L3` | `Reliability` | Agent JSON references child agents that don't exist |
+    | S005 | `strict-agent-path-layout` | Error | `Band 3 / OSI L3` | `Operational Excellence` | Agent config paths must be app-relative and prefixed with `agents/{agent_name}/` |
+    | S006 | `strict-tool-path-layout` | Error | `Band 4 / OSI L4` | `Operational Excellence` | Tool config paths must be app-relative and prefixed with `tools/{tool_name}/` |
+    | S007 | `sub-agent-single-parent` | Error | `Band 3 / OSI L3` | `Performance` | Sub-agents must have at most one parent agent (tree constraint) |
+    | S008 | `singleton-guardrail-types` | Error | `Band 2 / OSI L6a` | `Security` | At most one guardrail of each singleton type (`llmPromptSecurity`) per app |
 
     These rules are similar to I009 and I013 but operate at a higher level, cross-referencing the agent JSON config against the local file system.
 
@@ -424,15 +448,15 @@ Severities shown are the defaults. You can override any rule's severity in `cxas
 
     Rules in the `V` category validate resource configs against the CES protobuf schema. These catch structural issues that would cause API errors on push.
 
-    | ID | Name | Default | Description |
-    |----|------|---------|-------------|
-    | V001 | `schema-app-valid` | Error | App config conforms to CES proto schema |
-    | V002 | `schema-agent-valid` | Error | Agent config conforms to CES proto schema |
-    | V003 | `schema-tool-valid` | Error | Tool config conforms to CES proto schema |
-    | V004 | `schema-toolset-valid` | Error | Toolset config conforms to CES proto schema |
-    | V005 | `schema-guardrail-valid` | Error | Guardrail config conforms to CES proto schema |
-    | V006 | `schema-evaluation-valid` | Error | Evaluation config conforms to CES proto schema |
-    | V007 | `schema-eval-expectation-valid` | Error | Evaluation expectation config conforms to CES proto schema |
+    | ID | Name | Default | Layer | WAF Pillar | Description |
+    |----|------|---------|-------|------------|-------------|
+    | V001 | `schema-app-valid` | Error | `Band 1 / OSI L1` | `Reliability` | App config conforms to CES proto schema |
+    | V002 | `schema-agent-valid` | Error | `Band 3 / OSI L3` | `Reliability` | Agent config conforms to CES proto schema |
+    | V003 | `schema-tool-valid` | Error | `Band 4 / OSI L4` | `Reliability` | Tool config conforms to CES proto schema |
+    | V004 | `schema-toolset-valid` | Error | `Band 4 / OSI L4` | `Reliability` | Toolset config conforms to CES proto schema |
+    | V005 | `schema-guardrail-valid` | Error | `Band 2 / OSI L6a` | `Security` | Guardrail config conforms to CES proto schema |
+    | V006 | `schema-evaluation-valid` | Error | `Band 3 / OSI L7` | `Operational Excellence` | Evaluation config conforms to CES proto schema |
+    | V007 | `schema-eval-expectation-valid` | Error | `Band 3 / OSI L7` | `Operational Excellence` | Evaluation expectation config conforms to CES proto schema |
 
     Schema validation catches issues like unknown fields, wrong types, and missing required fields — before you try to push and get a cryptic API error.
 
@@ -440,13 +464,13 @@ Severities shown are the defaults. You can override any rule's severity in `cxas
 
     Rules in the `V` category (Variables) validate state, instruction, and eval references against declared variables in `app.json` `variableDeclarations`.
 
-    | ID | Name | Default | Description |
-    |----|------|---------|-------------|
-    | V100 | `variable-declared` | Error | State reads/writes (or eval refs) must reference a declared variable |
-    | V101 | `variable-type-match` | Error | State write must match the declared schema type for the variable |
-    | V102 | `nested-property-exists` | Error | Dotted state keys must resolve to declared OBJECT properties |
-    | V103 | `no-stale-flat-var-regression` | Warning | Reference matches a nested property — likely a stale flat-variable reference |
-    | V104 | `instruction-variable-ref` | Error | Instruction {var} references must resolve to a declared variable |
+    | ID | Name | Default | Layer | WAF Pillar | Description |
+    |----|------|---------|-------|------------|-------------|
+    | V100 | `variable-declared` | Error | `Band 2/3/4` *(by file)* | `Reliability` | State reads/writes (or eval refs) must reference a declared variable |
+    | V101 | `variable-type-match` | Error | `Band 2/3/4` *(by file)* | `Reliability` | State write must match the declared schema type for the variable |
+    | V102 | `nested-property-exists` | Error | `Band 2/3/4` *(by file)* | `Reliability` | Dotted state keys must resolve to declared OBJECT properties |
+    | V103 | `no-stale-flat-var-regression` | Warning | `Band 2/3/4` *(by file)* | `Reliability` | Reference matches a nested property — likely a stale flat-variable reference |
+    | V104 | `instruction-variable-ref` | Error | `Band 3 / OSI L7` | `Reliability` | Instruction {var} references must resolve to a declared variable |
 
     ---
 
